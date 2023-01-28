@@ -43,10 +43,12 @@ pub fn show_board(query: Query<(&Position, &Piece)>) {
 }
 
 fn print_array2d(array: Array2D<&str>) {
-    for row in array.rows_iter() {
+    for (i, row) in array.rows_iter().enumerate() {
+        print!("{}  ", i + 1);
         for element in row {
-            print!("{}", element);
+            print!("{}  ", element);
         }
-        print!("\n")
+        print!("\n\n")
     }
+    println!("   A  B  C  D  E  F  G  H")
 }
