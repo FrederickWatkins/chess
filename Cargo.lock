@@ -109,6 +109,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "array2d"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79093d31d0a9c7832c71ad74dd945b7861f721e6f242aa67be253a5eecbac937"
+
+[[package]]
 name = "arrayvec"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -961,6 +967,7 @@ checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 name = "chess"
 version = "0.1.0"
 dependencies = [
+ "array2d",
  "bevy",
  "ux",
 ]
