@@ -46,7 +46,7 @@ fn print_array2d(array: Array2D<&str>) {
     for (i, row) in array.rows_iter().enumerate() {
         print!("{}  ", i + 1);
         for element in row {
-            print!("{}  ", element);
+            print!("{element}  ");
         }
         print!("\n\n")
     }

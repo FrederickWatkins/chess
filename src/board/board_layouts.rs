@@ -1,6 +1,6 @@
 use crate::piece::{Color, Color::*, Piece, Piece::*};
-use lazy_static::lazy_static;
 use array2d::Array2D;
+use lazy_static::lazy_static;
 
 #[rustfmt::skip]
 lazy_static! {

@@ -1,4 +1,4 @@
-use bevy::prelude::{Component, Commands, Bundle};
+use bevy::prelude::{Bundle, Commands, Component};
 use ux::u4;
 
 #[derive(Component, Clone, Copy)]
@@ -15,7 +15,7 @@ pub enum Piece {
     BISHOP,
     ROOK,
     QUEEN,
-    KING
+    KING,
 }
 
 #[derive(Component)]
@@ -46,8 +46,8 @@ pub struct PawnBundle {
 impl PawnBundle {
     pub fn new(color: Color, position: Position) -> Self {
         Self {
-            color: color,
-            position: position,
+            color,
+            position,
             moved: Moved(false),
             _piece: Piece::PAWN,
         }
@@ -64,8 +64,8 @@ pub struct KnightBundle {
 impl KnightBundle {
     pub fn new(color: Color, position: Position) -> Self {
         Self {
-            color: color,
-            position: position,
+            color,
+            position,
             _piece: Piece::KNIGHT,
         }
     }
@@ -81,8 +81,8 @@ pub struct BishopBundle {
 impl BishopBundle {
     pub fn new(color: Color, position: Position) -> Self {
         Self {
-            color: color,
-            position: position,
+            color,
+            position,
             _piece: Piece::BISHOP,
         }
     }
@@ -99,8 +99,8 @@ pub struct RookBundle {
 impl RookBundle {
     pub fn new(color: Color, position: Position) -> Self {
         Self {
-            color: color,
-            position: position,
+            color,
+            position,
             moved: Moved(false),
             _piece: Piece::ROOK,
         }
@@ -117,8 +117,8 @@ pub struct QueenBundle {
 impl QueenBundle {
     pub fn new(color: Color, position: Position) -> Self {
         Self {
-            color: color,
-            position: position,
+            color,
+            position,
             _piece: Piece::QUEEN,
         }
     }
@@ -135,8 +135,8 @@ pub struct KingBundle {
 impl KingBundle {
     pub fn new(color: Color, position: Position) -> Self {
         Self {
-            color: color,
-            position: position,
+            color,
+            position,
             moved: Moved(false),
             _piece: Piece::KING,
         }
