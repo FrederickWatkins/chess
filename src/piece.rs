@@ -9,31 +9,20 @@ pub enum Color {
 
 /// Tag all chess pieces
 #[derive(Component)]
-struct Piece;
+pub enum Piece {
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING
+}
 
 #[derive(Component)]
-pub struct Position([u4; 2]);
+pub struct Position(pub [u4; 2]);
 
 #[derive(Component)]
-struct Moved(bool);
-
-#[derive(Component)]
-struct Pawn;
-
-#[derive(Component)]
-struct Knight;
-
-#[derive(Component)]
-struct Bishop;
-
-#[derive(Component)]
-struct Rook;
-
-#[derive(Component)]
-struct Queen;
-
-#[derive(Component)]
-struct King;
+pub struct Moved(bool);
 
 #[derive(Bundle)]
 pub struct PawnBundle {
@@ -41,7 +30,6 @@ pub struct PawnBundle {
     position: Position,
     moved: Moved,
     _piece: Piece,
-    _pawn: Pawn,
 }
 
 impl PawnBundle {
@@ -50,8 +38,7 @@ impl PawnBundle {
             color: color,
             position: position,
             moved: Moved(false),
-            _piece: Piece,
-            _pawn: Pawn,
+            _piece: Piece::PAWN,
         }
     }
 }
@@ -61,7 +48,6 @@ pub struct KnightBundle {
     color: Color,
     position: Position,
     _piece: Piece,
-    _knight: Knight,
 }
 
 impl KnightBundle {
@@ -69,8 +55,7 @@ impl KnightBundle {
         Self {
             color: color,
             position: position,
-            _piece: Piece,
-            _knight: Knight,
+            _piece: Piece::KNIGHT,
         }
     }
 }
@@ -80,7 +65,6 @@ pub struct BishopBundle {
     color: Color,
     position: Position,
     _piece: Piece,
-    _bishop: Bishop,
 }
 
 impl BishopBundle {
@@ -88,8 +72,7 @@ impl BishopBundle {
         Self {
             color: color,
             position: position,
-            _piece: Piece,
-            _bishop: Bishop,
+            _piece: Piece::BISHOP,
         }
     }
 }
@@ -100,7 +83,6 @@ pub struct RookBundle {
     position: Position,
     moved: Moved,
     _piece: Piece,
-    _rook: Rook,
 }
 
 impl RookBundle {
@@ -109,8 +91,7 @@ impl RookBundle {
             color: color,
             position: position,
             moved: Moved(false),
-            _piece: Piece,
-            _rook: Rook,
+            _piece: Piece::ROOK,
         }
     }
 }
@@ -120,7 +101,6 @@ pub struct QueenBundle {
     color: Color,
     position: Position,
     _piece: Piece,
-    _queen: Queen,
 }
 
 impl QueenBundle {
@@ -128,8 +108,7 @@ impl QueenBundle {
         Self {
             color: color,
             position: position,
-            _piece: Piece,
-            _queen: Queen,
+            _piece: Piece::QUEEN,
         }
     }
 }
@@ -140,7 +119,6 @@ pub struct KingBundle {
     position: Position,
     moved: Moved,
     _piece: Piece,
-    _king: King,
 }
 
 impl KingBundle {
@@ -149,8 +127,7 @@ impl KingBundle {
             color: color,
             position: position,
             moved: Moved(false),
-            _piece: Piece,
-            _king: King,
+            _piece: Piece::KING,
         }
     }
 }
