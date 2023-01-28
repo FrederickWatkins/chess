@@ -1,14 +1,14 @@
-use bevy::prelude::{Component, Bundle};
+use bevy::prelude::{Component, Commands, Bundle};
 use ux::u4;
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub enum Color {
     WHITE,
     BLACK,
 }
 
 /// Tag all chess pieces
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub enum Piece {
     PAWN,
     KNIGHT,
@@ -23,6 +23,17 @@ pub struct Position(pub [u4; 2]);
 
 #[derive(Component)]
 pub struct Moved(bool);
+
+pub fn spawn_piece(commands: &mut Commands, piece: Piece, color: Color, position: Position) {
+    match piece {
+        Piece::PAWN => commands.spawn(PawnBundle::new(color, position)),
+        Piece::KNIGHT => commands.spawn(KnightBundle::new(color, position)),
+        Piece::BISHOP => commands.spawn(BishopBundle::new(color, position)),
+        Piece::ROOK => commands.spawn(RookBundle::new(color, position)),
+        Piece::QUEEN => commands.spawn(QueenBundle::new(color, position)),
+        Piece::KING => commands.spawn(KingBundle::new(color, position)),
+    };
+}
 
 #[derive(Bundle)]
 pub struct PawnBundle {

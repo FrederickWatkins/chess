@@ -6,10 +6,22 @@ use ux::u4;
 mod board_layouts;
 
 pub fn setup(mut commands: Commands) {
-    commands.spawn(RookBundle::new(
-        Color::WHITE,
-        Position([u4::new(0), u4::new(0)]),
-    ));
+    for (x, row_iter) in board_layouts::DEFAULT_BOARD.rows_iter().enumerate() {
+        for (y, element) in row_iter.enumerate() {
+            match element {
+                Some((color, piece)) => spawn_piece(
+                    &mut commands,
+                    *piece,
+                    *color,
+                    Position([
+                        u4::new(x.try_into().unwrap()),
+                        u4::new(y.try_into().unwrap()),
+                    ]),
+                ),
+                None => {}
+            }
+        }
+    }
 }
 
 pub fn show_board(query: Query<(&Position, &Piece)>) {

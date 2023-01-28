@@ -969,6 +969,7 @@ version = "0.1.0"
 dependencies = [
  "array2d",
  "bevy",
+ "lazy_static",
  "ux",
 ]
 
