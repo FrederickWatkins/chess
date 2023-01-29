@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 array2d = "0.3.0"
-bevy = "0.9.1"
 lazy_static = "1.4.0"
 ux = "0.1.5"
 
