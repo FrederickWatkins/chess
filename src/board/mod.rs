@@ -1,9 +1,15 @@
 use crate::piece::*;
 use array2d::Array2D;
-use bevy::prelude::{Commands, Query};
+use bevy::prelude::{Commands, Entity, Query, Component};
+use std::io::stdin;
 use ux::u4;
 
 mod board_layouts;
+
+#[derive(Component)]
+struct Board;
+
+
 
 pub fn setup(mut commands: Commands) {
     for (x, row_iter) in board_layouts::DEFAULT_BOARD.rows_iter().enumerate() {
@@ -22,6 +28,46 @@ pub fn setup(mut commands: Commands) {
             }
         }
     }
+}
+
+pub fn take_turn(mut commands: Commands, mut query: Query<(Entity, &mut Position, &Piece, &Color)>) {
+    let input = &mut String::new();
+    stdin().read_line(input).unwrap();
+    input.pop(); // Remove newline character
+    let coords: Vec<&str> = input.split(" ").collect();
+    assert_eq!(coords.len(), 4);
+    let pos1 = (
+        u4::new(coords[0].parse::<u8>().unwrap()),
+        u4::new(coords[1].parse::<u8>().unwrap()),
+    );
+    let pos2 = (
+        u4::new(coords[2].parse::<u8>().unwrap()),
+        u4::new(coords[3].parse::<u8>().unwrap()),
+    );
+    let mut found = false;
+    let mut possible = false;
+    for (_entity, position, piece, color) in query.iter_mut() {
+        if position.0 == [pos1.0, pos1.1] {
+            found = true;
+            possible = check_move(&position, piece);
+            break;
+        }
+    }
+    if found && possible {
+        for (entity, position, _piece, color) in query.iter_mut() {
+            if position.0 == [pos2.0, pos2.1] {
+                commands.entity(entity).despawn();
+            }
+        }
+    }
+    else {
+        panic!()
+    }
+}
+
+/// Returns true if possible, false if impossible
+fn check_move(position: &Position, piece: &Piece) -> bool {
+    return true; // TODO implement logic for checking possible moves
 }
 
 pub fn show_board(query: Query<(&Position, &Piece)>) {
