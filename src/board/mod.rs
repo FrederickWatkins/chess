@@ -25,7 +25,10 @@ impl Add<Offset> for Position {
         let old_y: u8 = self.y.into();
         let new_x: isize = isize::from(old_x) - rhs.x;
         let new_y: isize = isize::from(old_y) - rhs.y;
-        Self {x: u4::new(new_x.try_into().unwrap()), y: u4::new(new_y.try_into().unwrap())}
+        Self {
+            x: u4::new(new_x.try_into().unwrap()),
+            y: u4::new(new_y.try_into().unwrap()),
+        }
     }
 }
 
@@ -53,6 +56,7 @@ impl Board {
 
     /// Takes in the position of a piece, returns all possible positions it could move to. Returns none if piece does not exist.
     fn calculate_possible_moves(&self, position: Position) -> Option<Vec<Position>> {
+        use Direction::*;
         let piece = match self.pieces[(
             position.x.try_into().unwrap(),
             position.y.try_into().unwrap(),
@@ -63,32 +67,76 @@ impl Board {
         match piece.piece_type {
             PieceType::PAWN => todo!(),
             PieceType::KNIGHT => todo!(),
-            PieceType::BISHOP => todo!(),
-            PieceType::ROOK => todo!(),
-            PieceType::QUEEN => todo!(),
+            PieceType::BISHOP => {
+                self.check_directions(position, vec![NE, SE, SW, NW], piece.color);
+            }
+            PieceType::ROOK => {
+                self.check_directions(position, vec![N, E, S, W], piece.color);
+            }
+            PieceType::QUEEN => {
+                self.check_directions(position, vec![N, NE, E, SE, S, SW, W, NW], piece.color);
+            }
             PieceType::KING => todo!(),
         }
+        Some(vec![])
     }
 
-    fn check_directions(&self, position: Position, directions: Vec<Direction>) -> Vec<Position> {
+    fn check_directions(
+        &self,
+        position: Position,
+        directions: Vec<Direction>,
+        color: Color,
+    ) -> Vec<Position> {
         let mut out = vec![];
 
         for direction in directions {
-            out.append(&mut self.check_direction(position, direction));
-        };
+            out.append(&mut self.check_direction(position, direction, color));
+        }
         out
     }
 
-    fn check_direction(&self, position: Position, direction: Direction) -> Vec<Position> {
-        match direction {
-            Direction::N => todo!(),
-            Direction::NE => todo!(),
-            Direction::E => todo!(),
-            Direction::SE => todo!(),
-            Direction::S => todo!(),
-            Direction::SW => todo!(),
-            Direction::W => todo!(),
-            Direction::NW => todo!(),
+    fn check_direction(
+        &self,
+        position: Position,
+        direction: Direction,
+        color: Color,
+    ) -> Vec<Position> {
+        let mut positions: Vec<Position> = vec![];
+        let mut x_pos: isize = usize::try_from(position.x).unwrap().try_into().unwrap();
+        let mut y_pos: isize = usize::try_from(position.y).unwrap().try_into().unwrap();
+        let (x_offset, y_offset) = match direction {
+            Direction::N => (0, 1),
+            Direction::NE => (1, 1),
+            Direction::E => (1, 0),
+            Direction::SE => (1, -1),
+            Direction::S => (0, -1),
+            Direction::SW => (-1, -1),
+            Direction::W => (-1, 0),
+            Direction::NW => (-1, 1),
+        };
+        while 0 < x_pos && x_pos < 7 && 0 < y_pos && y_pos < 7 {
+            x_pos += x_offset;
+            y_pos += y_offset;
+            let piece = match self.pieces[(x_pos.try_into().unwrap(), y_pos.try_into().unwrap())] {
+                Some(piece) => piece,
+                None => {
+                    positions.push(Position {
+                        x: u4::new(x_pos.try_into().unwrap()),
+                        y: u4::new(y_pos.try_into().unwrap()),
+                    });
+                    continue;
+                }
+            };
+            if piece.color == color {
+                return positions;
+            } else {
+                positions.push(Position {
+                    x: u4::new(x_pos.try_into().unwrap()),
+                    y: u4::new(y_pos.try_into().unwrap()),
+                });
+                return positions;
+            }
         }
+        positions
     }
 }
