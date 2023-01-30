@@ -1,17 +1,17 @@
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub enum Color {
-    WHITE,
-    BLACK,
+    White,
+    Black,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub enum PieceType {
-    PAWN,
-    KNIGHT,
-    BISHOP,
-    ROOK,
-    QUEEN,
-    KING,
+    Pawn,
+    Knight,
+    Bishop,
+    Rook,
+    Queen,
+    King,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy)]

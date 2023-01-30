@@ -60,18 +60,18 @@ impl Board {
             None => return None,
         };
         match piece.piece_type {
-            PieceType::PAWN => todo!(),
-            PieceType::KNIGHT => todo!(),
-            PieceType::BISHOP => {
+            PieceType::Pawn => todo!(),
+            PieceType::Knight => todo!(),
+            PieceType::Bishop => {
                 self.check_directions(position, vec![NE, SE, SW, NW], piece.color);
             }
-            PieceType::ROOK => {
+            PieceType::Rook => {
                 self.check_directions(position, vec![N, E, S, W], piece.color);
             }
-            PieceType::QUEEN => {
+            PieceType::Queen => {
                 self.check_directions(position, vec![N, NE, E, SE, S, SW, W, NW], piece.color);
             }
-            PieceType::KING => todo!(),
+            PieceType::King => todo!(),
         }
         Some(vec![])
     }
