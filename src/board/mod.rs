@@ -5,12 +5,13 @@ use array2d::Array2D;
 
 mod board_layout;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Position {
     x: u8,
     y: u8,
 }
 
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Offset {
     x: isize,
     y: isize,
@@ -27,6 +28,7 @@ impl Add<Offset> for Position {
     }
 }
 
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 enum Direction {
     N,
     NE,
@@ -38,6 +40,7 @@ enum Direction {
     NW,
 }
 
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Board {
     pieces: Array2D<Option<Piece>>,
 }
@@ -134,5 +137,42 @@ impl Board {
             }
         }
         positions
+    }
+}
+
+#[cfg(test)]
+mod position_tests {
+    use super::*;
+
+    #[test]
+    fn test_offset_positive_n() {
+        assert_eq!(
+            Position { x: 6, y: 6 },
+            Position { x: 6, y: 5 } + Offset { x: 0, y: 1 }
+        );
+    }
+
+    #[test]
+    fn test_offset_positive_ne() {
+        assert_eq!(
+            Position { x: 6, y: 6 },
+            Position { x: 5, y: 5 } + Offset { x: 1, y: 1 }
+        );
+    }
+
+    #[test]
+    fn test_offset_negative_s() {
+        assert_eq!(
+            Position { x: 6, y: 5 },
+            Position { x: 6, y: 6 } + Offset { x: 1, y: -1 }
+        );
+    }
+
+    #[test]
+    fn test_offset_negative_sw() {
+        assert_eq!(
+            Position { x: 6, y: 5 },
+            Position { x: 6, y: 6 } + Offset { x: -1, y: -1 }
+        );
     }
 }
