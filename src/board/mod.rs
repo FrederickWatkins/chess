@@ -22,8 +22,8 @@ impl Add<Offset> for Position {
 
     fn add(self, rhs: Offset) -> Self::Output {
         Self {
-            x: (isize::from(self.x) - rhs.x).try_into().unwrap(),
-            y: (isize::from(self.y) - rhs.y).try_into().unwrap(),
+            x: (isize::from(self.x) + rhs.x).try_into().unwrap(),
+            y: (isize::from(self.y) + rhs.y).try_into().unwrap(),
         }
     }
 }
@@ -164,14 +164,14 @@ mod position_tests {
     fn test_offset_negative_s() {
         assert_eq!(
             Position { x: 6, y: 5 },
-            Position { x: 6, y: 6 } + Offset { x: 1, y: -1 }
+            Position { x: 6, y: 6 } + Offset { x: 0, y: -1 }
         );
     }
 
     #[test]
     fn test_offset_negative_sw() {
         assert_eq!(
-            Position { x: 6, y: 5 },
+            Position { x: 5, y: 5 },
             Position { x: 6, y: 6 } + Offset { x: -1, y: -1 }
         );
     }
