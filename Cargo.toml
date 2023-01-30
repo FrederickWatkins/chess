@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 array2d = "0.3.0"
 lazy_static = "1.4.0"
-ux = "0.1.5"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

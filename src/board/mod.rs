@@ -2,14 +2,13 @@ use std::ops::Add;
 
 use crate::piece::*;
 use array2d::Array2D;
-use ux::u4;
 
 mod board_layout;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct Position {
-    x: u4,
-    y: u4,
+    x: u8,
+    y: u8,
 }
 
 pub struct Offset {
@@ -21,13 +20,9 @@ impl Add<Offset> for Position {
     type Output = Self;
 
     fn add(self, rhs: Offset) -> Self::Output {
-        let old_x: u8 = self.x.into();
-        let old_y: u8 = self.y.into();
-        let new_x: isize = isize::from(old_x) - rhs.x;
-        let new_y: isize = isize::from(old_y) - rhs.y;
         Self {
-            x: u4::new(new_x.try_into().unwrap()),
-            y: u4::new(new_y.try_into().unwrap()),
+            x: (isize::from(self.x) - rhs.x).try_into().unwrap(),
+            y: (isize::from(self.y) - rhs.y).try_into().unwrap(),
         }
     }
 }
@@ -102,8 +97,8 @@ impl Board {
         color: Color,
     ) -> Vec<Position> {
         let mut positions: Vec<Position> = vec![];
-        let mut x_pos: isize = usize::try_from(position.x).unwrap().try_into().unwrap();
-        let mut y_pos: isize = usize::try_from(position.y).unwrap().try_into().unwrap();
+        let mut x_pos: isize = position.x.into();
+        let mut y_pos: isize = position.y.into();
         let (x_offset, y_offset) = match direction {
             Direction::N => (0, 1),
             Direction::NE => (1, 1),
@@ -117,22 +112,23 @@ impl Board {
         while 0 < x_pos && x_pos < 7 && 0 < y_pos && y_pos < 7 {
             x_pos += x_offset;
             y_pos += y_offset;
-            let piece = match self.pieces[(x_pos.try_into().unwrap(), y_pos.try_into().unwrap())] {
-                Some(piece) => piece,
-                None => {
-                    positions.push(Position {
-                        x: u4::new(x_pos.try_into().unwrap()),
-                        y: u4::new(y_pos.try_into().unwrap()),
-                    });
-                    continue;
-                }
+            let piece = if let Some(piece) =
+                self.pieces[(x_pos.try_into().unwrap(), y_pos.try_into().unwrap())]
+            {
+                piece
+            } else {
+                positions.push(Position {
+                    x: x_pos.try_into().unwrap(),
+                    y: y_pos.try_into().unwrap(),
+                });
+                continue;
             };
             if piece.color == color {
                 return positions;
             } else {
                 positions.push(Position {
-                    x: u4::new(x_pos.try_into().unwrap()),
-                    y: u4::new(y_pos.try_into().unwrap()),
+                    x: x_pos.try_into().unwrap(),
+                    y: y_pos.try_into().unwrap(),
                 });
                 return positions;
             }
