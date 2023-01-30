@@ -189,6 +189,89 @@ mod position_tests {
 
         mod check_directions {
             use super::*;
+
+            #[test]
+            fn cardinal_directions() {
+                let board = Board::new();
+                let mut result = board.check_directions(
+                    Position { x: 3, y: 4 },
+                    vec![Direction::N, Direction::E, Direction::S, Direction::W],
+                    Color::White,
+                );
+                result.sort();
+                let mut expected_result = vec![
+                    Position { x: 0, y: 4 },
+                    Position { x: 1, y: 4 },
+                    Position { x: 2, y: 4 },
+                    Position { x: 4, y: 4 },
+                    Position { x: 5, y: 4 },
+                    Position { x: 6, y: 4 },
+                    Position { x: 7, y: 4 },
+                    Position { x: 3, y: 2 },
+                    Position { x: 3, y: 3 },
+                    Position { x: 3, y: 5 },
+                    Position { x: 3, y: 6 },
+                ];
+                expected_result.sort();
+                assert_eq!(result, expected_result)
+            }
+
+            #[test]
+            fn diagonal_directions() {
+                let board = Board::new();
+                let mut result = board.check_directions(
+                    Position { x: 4, y: 5 },
+                    vec![Direction::NE, Direction::SE, Direction::SW, Direction::NW],
+                    Color::Black,
+                );
+                result.sort();
+                let mut expected_result = vec![
+                    Position { x: 0, y: 1 },
+                    Position { x: 1, y: 2 },
+                    Position { x: 2, y: 3 },
+                    Position { x: 3, y: 4 },
+                    Position { x: 7, y: 2 },
+                    Position { x: 6, y: 3 },
+                    Position { x: 5, y: 4 },
+                ];
+                expected_result.sort();
+                assert_eq!(result, expected_result)
+            }
+
+            #[test]
+            fn all_directions() {
+                let board = Board::new();
+                let mut result = board.check_directions(
+                    Position { x: 1, y: 3 },
+                    vec![Direction::N, Direction::NE, Direction::E, Direction::SE, Direction::S, Direction::SW, Direction::W, Direction::NW],
+                    Color::Black,
+                );
+                result.sort();
+                let mut expected_result = vec![
+                    Position {x: 0, y: 3},
+                    Position {x: 2, y: 3},
+                    Position {x: 3, y: 3},
+                    Position {x: 4, y: 3},
+                    Position {x: 5, y: 3},
+                    Position {x: 6, y: 3},
+                    Position {x: 7, y: 3},
+                    Position {x: 1, y: 1},
+                    Position {x: 1, y: 2},
+                    Position {x: 1, y: 4},
+                    Position {x: 1, y: 5},
+                    Position {x: 0, y: 2},
+                    Position {x: 2, y: 4},
+                    Position {x: 3, y: 5},
+                    Position {x: 0, y: 4},
+                    Position {x: 2, y: 2},
+                    Position {x: 3, y: 1},
+
+                ];
+                expected_result.sort();
+                assert_eq!(result, expected_result)
+            }
+
+
         }
 
         mod check_direction {
