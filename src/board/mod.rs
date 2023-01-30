@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::{ops::Add, fmt::Display};
 
 use crate::piece::*;
 use array2d::Array2D;
@@ -52,8 +52,13 @@ impl Board {
         }
     }
 
+    /// Moves piece from from_position to to_position, taking a piece if neccesary. Does not check if move is possible.
+    pub fn move_piece(&mut self, from_position: Position, to_position: Position) {
+        todo!()
+    }
+
     /// Takes in the position of a piece, returns all possible positions it could move to. Returns none if piece does not exist.
-    fn calculate_possible_moves(&self, position: Position) -> Option<Vec<Position>> {
+    pub fn calculate_possible_moves(&self, position: Position) -> Option<Vec<Position>> {
         use Direction::*;
         let piece = match self.pieces[(
             position.x.try_into().unwrap(),
@@ -137,6 +142,12 @@ impl Board {
             }
         }
         positions
+    }
+}
+
+impl Display for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
     }
 }
 
