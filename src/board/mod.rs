@@ -147,7 +147,30 @@ impl Board {
 
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        for (i, column) in self.pieces.columns_iter().enumerate() {
+            match write!(f, "{}  ", i + 1) {
+                Ok(_) => (),
+                Err(e) => {return Err(e)},
+            };
+            for piece in column {
+                match write!(f, "{}  ", match piece {
+                    Some(piece) => {format!("{}", piece)},
+                    None => " ".to_string(),
+                }) {
+                    Ok(_) => (),
+                    Err(e) => {return Err(e)},
+                };
+            }
+            match writeln!(f, "") {
+                Ok(_) => (),
+                Err(e) => {return Err(e)},
+            };
+            match writeln!(f, "") {
+                Ok(_) => (),
+                Err(e) => {return Err(e)},
+            };
+        };
+        write!(f, "   A  B  C  D  E  F  G  H")
     }
 }
 
