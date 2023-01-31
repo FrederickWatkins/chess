@@ -24,19 +24,27 @@ pub struct Piece {
 
 impl Display for Piece {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self.piece_type {
-            PieceType::Pawn => "P",
-            PieceType::Knight => "N",
-            PieceType::Bishop => "B",
-            PieceType::Rook => "R",
-            PieceType::Queen => "Q",
-            PieceType::King => "K",
-        })
+        write!(
+            f,
+            "{}",
+            match self.piece_type {
+                PieceType::Pawn => "P",
+                PieceType::Knight => "N",
+                PieceType::Bishop => "B",
+                PieceType::Rook => "R",
+                PieceType::Queen => "Q",
+                PieceType::King => "K",
+            }
+        )
     }
 }
 
 impl Piece {
     pub fn new(color: Color, piece_type: PieceType) -> Self {
-        Self { color, piece_type, moved: false }
+        Self {
+            color,
+            piece_type,
+            moved: false,
+        }
     }
 }

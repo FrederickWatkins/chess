@@ -1,4 +1,4 @@
-use std::{ops::Add, fmt::Display};
+use std::{fmt::Display, ops::Add};
 
 use crate::piece::*;
 use array2d::Array2D;
@@ -150,26 +150,32 @@ impl Display for Board {
         for (i, column) in self.pieces.columns_iter().enumerate() {
             match write!(f, "{}  ", i + 1) {
                 Ok(_) => (),
-                Err(e) => {return Err(e)},
+                Err(e) => return Err(e),
             };
             for piece in column {
-                match write!(f, "{}  ", match piece {
-                    Some(piece) => {format!("{}", piece)},
-                    None => " ".to_string(),
-                }) {
+                match write!(
+                    f,
+                    "{}  ",
+                    match piece {
+                        Some(piece) => {
+                            format!("{piece}")
+                        }
+                        None => " ".to_string(),
+                    }
+                ) {
                     Ok(_) => (),
-                    Err(e) => {return Err(e)},
+                    Err(e) => return Err(e),
                 };
             }
-            match writeln!(f, "") {
+            match writeln!(f) {
                 Ok(_) => (),
-                Err(e) => {return Err(e)},
+                Err(e) => return Err(e),
             };
-            match writeln!(f, "") {
+            match writeln!(f) {
                 Ok(_) => (),
-                Err(e) => {return Err(e)},
+                Err(e) => return Err(e),
             };
-        };
+        }
         write!(f, "   A  B  C  D  E  F  G  H")
     }
 }
@@ -275,35 +281,41 @@ mod board_tests {
             let board = Board::new();
             let mut result = board.check_directions(
                 Position { x: 1, y: 3 },
-                vec![Direction::N, Direction::NE, Direction::E, Direction::SE, Direction::S, Direction::SW, Direction::W, Direction::NW],
+                vec![
+                    Direction::N,
+                    Direction::NE,
+                    Direction::E,
+                    Direction::SE,
+                    Direction::S,
+                    Direction::SW,
+                    Direction::W,
+                    Direction::NW,
+                ],
                 Color::Black,
             );
             result.sort();
             let mut expected_result = vec![
-                Position {x: 0, y: 3},
-                Position {x: 2, y: 3},
-                Position {x: 3, y: 3},
-                Position {x: 4, y: 3},
-                Position {x: 5, y: 3},
-                Position {x: 6, y: 3},
-                Position {x: 7, y: 3},
-                Position {x: 1, y: 1},
-                Position {x: 1, y: 2},
-                Position {x: 1, y: 4},
-                Position {x: 1, y: 5},
-                Position {x: 0, y: 2},
-                Position {x: 2, y: 4},
-                Position {x: 3, y: 5},
-                Position {x: 0, y: 4},
-                Position {x: 2, y: 2},
-                Position {x: 3, y: 1},
-
+                Position { x: 0, y: 3 },
+                Position { x: 2, y: 3 },
+                Position { x: 3, y: 3 },
+                Position { x: 4, y: 3 },
+                Position { x: 5, y: 3 },
+                Position { x: 6, y: 3 },
+                Position { x: 7, y: 3 },
+                Position { x: 1, y: 1 },
+                Position { x: 1, y: 2 },
+                Position { x: 1, y: 4 },
+                Position { x: 1, y: 5 },
+                Position { x: 0, y: 2 },
+                Position { x: 2, y: 4 },
+                Position { x: 3, y: 5 },
+                Position { x: 0, y: 4 },
+                Position { x: 2, y: 2 },
+                Position { x: 3, y: 1 },
             ];
             expected_result.sort();
             assert_eq!(result, expected_result)
         }
-
-
     }
 
     mod check_direction {

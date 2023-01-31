@@ -3,5 +3,5 @@ mod piece;
 
 fn main() {
     let b = board::Board::new();
-    println!("{}", b);
+    println!("{b}");
 }
