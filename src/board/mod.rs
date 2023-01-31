@@ -243,6 +243,77 @@ mod board_tests {
 
     mod calculate_possible_moves {
         use super::*;
+
+        #[test]
+        fn bishop() {
+            let mut board = Board::new();
+            board.move_piece(Position {x: 2, y: 7}, Position {x: 4, y: 5});
+            let mut result = board.calculate_possible_moves(Position {x: 4, y: 5}).unwrap();
+            result.sort();
+            let mut expected_result = vec![
+                Position { x: 0, y: 1 },
+                Position { x: 1, y: 2 },
+                Position { x: 2, y: 3 },
+                Position { x: 3, y: 4 },
+                Position { x: 7, y: 2 },
+                Position { x: 6, y: 3 },
+                Position { x: 5, y: 4 },
+            ];
+            expected_result.sort();
+            assert_eq!(result, expected_result)
+        }
+
+        #[test]
+        fn rook() {
+            let mut board = Board::new();
+            board.move_piece(Position {x: 0, y: 0}, Position {x: 3, y: 4});
+            let mut result = board.calculate_possible_moves(Position {x: 3, y: 4}).unwrap();
+            result.sort();
+            let mut expected_result = vec![
+                Position { x: 0, y: 4 },
+                Position { x: 1, y: 4 },
+                Position { x: 2, y: 4 },
+                Position { x: 4, y: 4 },
+                Position { x: 5, y: 4 },
+                Position { x: 6, y: 4 },
+                Position { x: 7, y: 4 },
+                Position { x: 3, y: 2 },
+                Position { x: 3, y: 3 },
+                Position { x: 3, y: 5 },
+                Position { x: 3, y: 6 },
+            ];
+            expected_result.sort();
+            assert_eq!(result, expected_result)
+        }
+
+        #[test]
+        fn queen() {
+            let mut board = Board::new();
+            board.move_piece(Position {x: 3, y: 7}, Position {x: 1, y: 3});
+            let mut result = board.calculate_possible_moves(Position {x: 1, y: 3}).unwrap();
+            result.sort();
+            let mut expected_result = vec![
+                Position { x: 0, y: 3 },
+                Position { x: 2, y: 3 },
+                Position { x: 3, y: 3 },
+                Position { x: 4, y: 3 },
+                Position { x: 5, y: 3 },
+                Position { x: 6, y: 3 },
+                Position { x: 7, y: 3 },
+                Position { x: 1, y: 1 },
+                Position { x: 1, y: 2 },
+                Position { x: 1, y: 4 },
+                Position { x: 1, y: 5 },
+                Position { x: 0, y: 2 },
+                Position { x: 2, y: 4 },
+                Position { x: 3, y: 5 },
+                Position { x: 0, y: 4 },
+                Position { x: 2, y: 2 },
+                Position { x: 3, y: 1 },
+            ];
+            expected_result.sort();
+            assert_eq!(result, expected_result)
+        }
     }
 
     mod check_directions {
