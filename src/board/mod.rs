@@ -1,4 +1,7 @@
-use std::{fmt::Display, ops::Add};
+use std::{
+    fmt::Display,
+    ops::{Add, AddAssign, Index, IndexMut},
+};
 
 use crate::piece::*;
 use array2d::Array2D;
@@ -25,6 +28,12 @@ impl Add<Offset> for Position {
             x: (isize::from(self.x) + rhs.x).try_into().unwrap(),
             y: (isize::from(self.y) + rhs.y).try_into().unwrap(),
         }
+    }
+}
+
+impl AddAssign<Offset> for Position {
+    fn add_assign(&mut self, rhs: Offset) {
+        *self = *self + rhs;
     }
 }
 
@@ -100,44 +109,33 @@ impl Board {
 
     fn check_direction(
         &self,
-        position: Position,
+        mut position: Position,
         direction: Direction,
         color: Color,
     ) -> Vec<Position> {
         let mut positions: Vec<Position> = vec![];
-        let mut x_pos: isize = position.x.into();
-        let mut y_pos: isize = position.y.into();
-        let (x_offset, y_offset) = match direction {
-            Direction::N => (0, 1),
-            Direction::NE => (1, 1),
-            Direction::E => (1, 0),
-            Direction::SE => (1, -1),
-            Direction::S => (0, -1),
-            Direction::SW => (-1, -1),
-            Direction::W => (-1, 0),
-            Direction::NW => (-1, 1),
+        let offset = match direction {
+            Direction::N => Offset { x: 0, y: 1 },
+            Direction::NE => Offset { x: 1, y: 1 },
+            Direction::E => Offset { x: 1, y: 0 },
+            Direction::SE => Offset { x: 1, y: -1 },
+            Direction::S => Offset { x: 0, y: -1 },
+            Direction::SW => Offset { x: -1, y: -1 },
+            Direction::W => Offset { x: -1, y: 0 },
+            Direction::NW => Offset { x: -1, y: 1 },
         };
-        while 0 < x_pos && x_pos < 7 && 0 < y_pos && y_pos < 7 {
-            x_pos += x_offset;
-            y_pos += y_offset;
-            let piece = if let Some(piece) =
-                self.pieces[(x_pos.try_into().unwrap(), y_pos.try_into().unwrap())]
-            {
+        while 0 < position.x && position.x < 7 && 0 < position.y && position.y < 7 {
+            position += offset;
+            let piece = if let Some(piece) = self[position] {
                 piece
             } else {
-                positions.push(Position {
-                    x: x_pos.try_into().unwrap(),
-                    y: y_pos.try_into().unwrap(),
-                });
+                positions.push(position);
                 continue;
             };
             if piece.color == color {
                 return positions;
             } else {
-                positions.push(Position {
-                    x: x_pos.try_into().unwrap(),
-                    y: y_pos.try_into().unwrap(),
-                });
+                positions.push(position);
                 return positions;
             }
         }
@@ -145,14 +143,30 @@ impl Board {
     }
 }
 
+impl Index<Position> for Board {
+    type Output = Option<Piece>;
+
+    #[inline(always)]
+    fn index(&self, index: Position) -> &Self::Output {
+        &self.pieces[(index.y.try_into().unwrap(), index.x.try_into().unwrap())]
+    }
+}
+
+impl IndexMut<Position> for Board {
+    #[inline(always)]
+    fn index_mut(&mut self, index: Position) -> &mut Self::Output {
+        &mut self.pieces[(index.y.try_into().unwrap(), index.x.try_into().unwrap())]
+    }
+}
+
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for (i, column) in self.pieces.columns_iter().enumerate() {
+        for (i, row) in self.pieces.rows_iter().enumerate() {
             match write!(f, "{}  ", i + 1) {
                 Ok(_) => (),
                 Err(e) => return Err(e),
             };
-            for piece in column {
+            for piece in row {
                 match write!(
                     f,
                     "{}  ",

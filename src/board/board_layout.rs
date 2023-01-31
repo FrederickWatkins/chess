@@ -6,7 +6,7 @@ use lazy_static::lazy_static;
 lazy_static! {
     /// Default chess board layout. 0, 0 is A1 etc
     pub static ref DEFAULT_BOARD: Array2D<Option<Piece>> = {
-        Array2D::from_column_major(&[
+        Array2D::from_row_major(&[
             Some(Piece::new(White, Rook)),   Some(Piece::new(White, Knight)), Some(Piece::new(White, Bishop)), Some(Piece::new(White, Queen)),  Some(Piece::new(White, King)),   Some(Piece::new(White, Bishop)), Some(Piece::new(White, Knight)), Some(Piece::new(White, Rook)),
         
             Some(Piece::new(White, Pawn)),   Some(Piece::new(White, Pawn)),   Some(Piece::new(White, Pawn)),   Some(Piece::new(White, Pawn)),   Some(Piece::new(White, Pawn)),   Some(Piece::new(White, Pawn)),   Some(Piece::new(White, Pawn)),   Some(Piece::new(White, Pawn)),
