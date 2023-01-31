@@ -8,12 +8,14 @@ use array2d::Array2D;
 
 mod board_layout;
 
+/// Position on chess board
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Position {
     x: u8,
     y: u8,
 }
 
+/// Offset to position
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Offset {
     x: isize,
@@ -37,6 +39,7 @@ impl AddAssign<Offset> for Position {
     }
 }
 
+/// Directions a piece can move
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 enum Direction {
     N,
@@ -49,6 +52,7 @@ enum Direction {
     NW,
 }
 
+/// Chess board. It is the responsibility of the caller to ensure moves on the board are possible.
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Board {
     pieces: Array2D<Option<Piece>>,
@@ -93,6 +97,7 @@ impl Board {
         Some(vec![])
     }
 
+    /// Checks directions and returns vector of possible positions.
     fn check_directions(
         &self,
         position: Position,
@@ -107,6 +112,7 @@ impl Board {
         out
     }
 
+    /// Checks direction and returns vector of possible positions.
     fn check_direction(
         &self,
         mut position: Position,
