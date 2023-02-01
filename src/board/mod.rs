@@ -100,28 +100,24 @@ impl Board {
     /// Takes in the position of a piece, returns all possible positions it could move to. Returns none if piece does not exist.
     pub fn calculate_possible_moves(&self, position: Position) -> Option<Vec<Position>> {
         use Direction::*;
-        let piece = match self.pieces[(
-            position.x.try_into().unwrap(),
-            position.y.try_into().unwrap(),
-        )] {
+        let piece = match self[position] {
             Some(piece) => piece,
             None => return None,
         };
-        match piece.piece_type {
+        Some(match piece.piece_type {
             PieceType::Pawn => todo!(),
             PieceType::Knight => todo!(),
             PieceType::Bishop => {
-                self.check_directions(position, vec![NE, SE, SW, NW], piece.color);
+                self.check_directions(position, vec![NE, SE, SW, NW], piece.color)
             }
             PieceType::Rook => {
-                self.check_directions(position, vec![N, E, S, W], piece.color);
+                self.check_directions(position, vec![N, E, S, W], piece.color)
             }
             PieceType::Queen => {
-                self.check_directions(position, vec![N, NE, E, SE, S, SW, W, NW], piece.color);
+                self.check_directions(position, vec![N, NE, E, SE, S, SW, W, NW], piece.color)
             }
             PieceType::King => todo!(),
-        }
-        Some(vec![])
+        })
     }
 
     /// Checks directions and returns vector of possible positions.
@@ -132,7 +128,6 @@ impl Board {
         color: Color,
     ) -> Vec<Position> {
         let mut out = vec![];
-
         for direction in directions {
             out.append(&mut self.check_direction(position, direction, color));
         }
