@@ -15,11 +15,33 @@ pub struct Position {
     y: u8,
 }
 
+impl Position {
+    pub fn new(x: u8, y: u8) -> Self {
+        if x < 8 && y < 8 {
+            Self { x, y }
+        }
+        else {
+            panic!("Position out of bounds.")
+        }
+    }
+}
+
 /// Offset to position
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Offset {
-    x: isize,
-    y: isize,
+    x: i8,
+    y: i8,
+}
+
+impl Offset {
+    pub fn new(x: i8, y: i8) -> Self {
+        if -8 < x && x < 8 && -8 < y && y < 8 {
+            Self { x, y }
+        }
+        else {
+            panic!("Offset out of bounds.")
+        }
+    }
 }
 
 impl Add<Offset> for Position {
@@ -27,8 +49,8 @@ impl Add<Offset> for Position {
 
     fn add(self, rhs: Offset) -> Self::Output {
         Self {
-            x: (isize::from(self.x) + rhs.x).try_into().unwrap(),
-            y: (isize::from(self.y) + rhs.y).try_into().unwrap(),
+            x: (i8::try_from(self.x).unwrap() + rhs.x).try_into().unwrap(),
+            y: (i8::try_from(self.y).unwrap() + rhs.y).try_into().unwrap(),
         }
     }
 }
@@ -126,14 +148,14 @@ impl Board {
     ) -> Vec<Position> {
         let mut positions: Vec<Position> = vec![];
         let offset = match direction {
-            Direction::N => Offset { x: 0, y: 1 },
-            Direction::NE => Offset { x: 1, y: 1 },
-            Direction::E => Offset { x: 1, y: 0 },
-            Direction::SE => Offset { x: 1, y: -1 },
-            Direction::S => Offset { x: 0, y: -1 },
-            Direction::SW => Offset { x: -1, y: -1 },
-            Direction::W => Offset { x: -1, y: 0 },
-            Direction::NW => Offset { x: -1, y: 1 },
+            Direction::N => Offset::new(0, 1),
+            Direction::NE => Offset::new(1, 1),
+            Direction::E => Offset::new(1, 0),
+            Direction::SE => Offset::new(1, -1),
+            Direction::S => Offset::new(0, -1),
+            Direction::SW => Offset::new(-1, -1),
+            Direction::W => Offset::new(-1, 0),
+            Direction::NW => Offset::new(-1, 1),
         };
         while 0 < position.x && position.x < 7 && 0 < position.y && position.y < 7 {
             position += offset;
@@ -212,32 +234,32 @@ mod position_tests {
     #[test]
     fn test_offset_positive_n() {
         assert_eq!(
-            Position { x: 6, y: 6 },
-            Position { x: 6, y: 5 } + Offset { x: 0, y: 1 }
+            Position::new(6, 6),
+            Position::new(6, 5) + Offset::new(0, 1)
         );
     }
 
     #[test]
     fn test_offset_positive_ne() {
         assert_eq!(
-            Position { x: 6, y: 6 },
-            Position { x: 5, y: 5 } + Offset { x: 1, y: 1 }
+            Position::new(6, 6),
+            Position::new(5, 5) + Offset::new(1, 1)
         );
     }
 
     #[test]
     fn test_offset_negative_s() {
         assert_eq!(
-            Position { x: 6, y: 5 },
-            Position { x: 6, y: 6 } + Offset { x: 0, y: -1 }
+            Position::new(6, 5),
+            Position::new(6, 6) + Offset::new(0, -1)
         );
     }
 
     #[test]
     fn test_offset_negative_sw() {
         assert_eq!(
-            Position { x: 5, y: 5 },
-            Position { x: 6, y: 6 } + Offset { x: -1, y: -1 }
+            Position::new(5, 5),
+            Position::new(6, 6) + Offset::new(-1, -1)
         );
     }
 }
@@ -252,10 +274,10 @@ mod board_tests {
         #[test]
         fn move_queen() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 3, y: 0 }, Position { x: 5, y: 5 });
-            assert_eq!(board[Position { x: 3, y: 0 }], None);
+            board.move_piece(Position::new(3, 0), Position::new(5, 5));
+            assert_eq!(board[Position::new(3, 0)], None);
             assert_eq!(
-                board[Position { x: 5, y: 5 }].unwrap(),
+                board[Position::new(5, 5)].unwrap(),
                 Piece {
                     color: Color::White,
                     piece_type: PieceType::Queen,
@@ -271,19 +293,19 @@ mod board_tests {
         #[test]
         fn bishop() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 2, y: 7 }, Position { x: 4, y: 5 });
+            board.move_piece(Position::new(2, 7), Position::new(4, 5));
             let mut result = board
-                .calculate_possible_moves(Position { x: 4, y: 5 })
+                .calculate_possible_moves(Position::new(4, 5))
                 .unwrap();
             result.sort();
             let mut expected_result = vec![
-                Position { x: 0, y: 1 },
-                Position { x: 1, y: 2 },
-                Position { x: 2, y: 3 },
-                Position { x: 3, y: 4 },
-                Position { x: 7, y: 2 },
-                Position { x: 6, y: 3 },
-                Position { x: 5, y: 4 },
+                Position::new(0, 1),
+                Position::new(1, 2),
+                Position::new(2, 3),
+                Position::new(3, 4),
+                Position::new(7, 2),
+                Position::new(6, 3),
+                Position::new(5, 4),
             ];
             expected_result.sort();
             assert_eq!(result, expected_result)
@@ -292,23 +314,23 @@ mod board_tests {
         #[test]
         fn rook() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 0, y: 0 }, Position { x: 3, y: 4 });
+            board.move_piece(Position::new(0, 0), Position::new(3, 4));
             let mut result = board
-                .calculate_possible_moves(Position { x: 3, y: 4 })
+                .calculate_possible_moves(Position::new(3, 4))
                 .unwrap();
             result.sort();
             let mut expected_result = vec![
-                Position { x: 0, y: 4 },
-                Position { x: 1, y: 4 },
-                Position { x: 2, y: 4 },
-                Position { x: 4, y: 4 },
-                Position { x: 5, y: 4 },
-                Position { x: 6, y: 4 },
-                Position { x: 7, y: 4 },
-                Position { x: 3, y: 2 },
-                Position { x: 3, y: 3 },
-                Position { x: 3, y: 5 },
-                Position { x: 3, y: 6 },
+                Position::new(0, 4),
+                Position::new(1, 4),
+                Position::new(2, 4),
+                Position::new(4, 4),
+                Position::new(5, 4),
+                Position::new(6, 4),
+                Position::new(7, 4),
+                Position::new(3, 2),
+                Position::new(3, 3),
+                Position::new(3, 5),
+                Position::new(3, 6),
             ];
             expected_result.sort();
             assert_eq!(result, expected_result)
@@ -317,29 +339,29 @@ mod board_tests {
         #[test]
         fn queen() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 3, y: 7 }, Position { x: 1, y: 3 });
+            board.move_piece(Position::new(3, 7), Position::new(1, 3));
             let mut result = board
-                .calculate_possible_moves(Position { x: 1, y: 3 })
+                .calculate_possible_moves(Position::new(1, 3))
                 .unwrap();
             result.sort();
             let mut expected_result = vec![
-                Position { x: 0, y: 3 },
-                Position { x: 2, y: 3 },
-                Position { x: 3, y: 3 },
-                Position { x: 4, y: 3 },
-                Position { x: 5, y: 3 },
-                Position { x: 6, y: 3 },
-                Position { x: 7, y: 3 },
-                Position { x: 1, y: 1 },
-                Position { x: 1, y: 2 },
-                Position { x: 1, y: 4 },
-                Position { x: 1, y: 5 },
-                Position { x: 0, y: 2 },
-                Position { x: 2, y: 4 },
-                Position { x: 3, y: 5 },
-                Position { x: 0, y: 4 },
-                Position { x: 2, y: 2 },
-                Position { x: 3, y: 1 },
+                Position::new(0, 3),
+                Position::new(2, 3),
+                Position::new(3, 3),
+                Position::new(4, 3),
+                Position::new(5, 3),
+                Position::new(6, 3),
+                Position::new(7, 3),
+                Position::new(1, 1),
+                Position::new(1, 2),
+                Position::new(1, 4),
+                Position::new(1, 5),
+                Position::new(0, 2),
+                Position::new(2, 4),
+                Position::new(3, 5),
+                Position::new(0, 4),
+                Position::new(2, 2),
+                Position::new(3, 1),
             ];
             expected_result.sort();
             assert_eq!(result, expected_result)
@@ -353,23 +375,23 @@ mod board_tests {
         fn cardinal_directions() {
             let board = Board::new();
             let mut result = board.check_directions(
-                Position { x: 3, y: 4 },
+                Position::new(3, 4),
                 vec![Direction::N, Direction::E, Direction::S, Direction::W],
                 Color::White,
             );
             result.sort();
             let mut expected_result = vec![
-                Position { x: 0, y: 4 },
-                Position { x: 1, y: 4 },
-                Position { x: 2, y: 4 },
-                Position { x: 4, y: 4 },
-                Position { x: 5, y: 4 },
-                Position { x: 6, y: 4 },
-                Position { x: 7, y: 4 },
-                Position { x: 3, y: 2 },
-                Position { x: 3, y: 3 },
-                Position { x: 3, y: 5 },
-                Position { x: 3, y: 6 },
+                Position::new(0, 4),
+                Position::new(1, 4),
+                Position::new(2, 4),
+                Position::new(4, 4),
+                Position::new(5, 4),
+                Position::new(6, 4),
+                Position::new(7, 4),
+                Position::new(3, 2),
+                Position::new(3, 3),
+                Position::new(3, 5),
+                Position::new(3, 6),
             ];
             expected_result.sort();
             assert_eq!(result, expected_result)
@@ -379,19 +401,19 @@ mod board_tests {
         fn diagonal_directions() {
             let board = Board::new();
             let mut result = board.check_directions(
-                Position { x: 4, y: 5 },
+                Position::new(4, 5),
                 vec![Direction::NE, Direction::SE, Direction::SW, Direction::NW],
                 Color::Black,
             );
             result.sort();
             let mut expected_result = vec![
-                Position { x: 0, y: 1 },
-                Position { x: 1, y: 2 },
-                Position { x: 2, y: 3 },
-                Position { x: 3, y: 4 },
-                Position { x: 7, y: 2 },
-                Position { x: 6, y: 3 },
-                Position { x: 5, y: 4 },
+                Position::new(0, 1),
+                Position::new(1, 2),
+                Position::new(2, 3),
+                Position::new(3, 4),
+                Position::new(7, 2),
+                Position::new(6, 3),
+                Position::new(5, 4),
             ];
             expected_result.sort();
             assert_eq!(result, expected_result)
@@ -401,7 +423,7 @@ mod board_tests {
         fn all_directions() {
             let board = Board::new();
             let mut result = board.check_directions(
-                Position { x: 1, y: 3 },
+                Position::new(1, 3),
                 vec![
                     Direction::N,
                     Direction::NE,
@@ -416,23 +438,23 @@ mod board_tests {
             );
             result.sort();
             let mut expected_result = vec![
-                Position { x: 0, y: 3 },
-                Position { x: 2, y: 3 },
-                Position { x: 3, y: 3 },
-                Position { x: 4, y: 3 },
-                Position { x: 5, y: 3 },
-                Position { x: 6, y: 3 },
-                Position { x: 7, y: 3 },
-                Position { x: 1, y: 1 },
-                Position { x: 1, y: 2 },
-                Position { x: 1, y: 4 },
-                Position { x: 1, y: 5 },
-                Position { x: 0, y: 2 },
-                Position { x: 2, y: 4 },
-                Position { x: 3, y: 5 },
-                Position { x: 0, y: 4 },
-                Position { x: 2, y: 2 },
-                Position { x: 3, y: 1 },
+                Position::new(0, 3),
+                Position::new(2, 3),
+                Position::new(3, 3),
+                Position::new(4, 3),
+                Position::new(5, 3),
+                Position::new(6, 3),
+                Position::new(7, 3),
+                Position::new(1, 1),
+                Position::new(1, 2),
+                Position::new(1, 4),
+                Position::new(1, 5),
+                Position::new(0, 2),
+                Position::new(2, 4),
+                Position::new(3, 5),
+                Position::new(0, 4),
+                Position::new(2, 2),
+                Position::new(3, 1),
             ];
             expected_result.sort();
             assert_eq!(result, expected_result)
@@ -446,7 +468,7 @@ mod board_tests {
         fn no_move_n() {
             let board = Board::new();
             assert_eq!(
-                board.check_direction(Position { x: 4, y: 0 }, Direction::N, Color::White),
+                board.check_direction(Position::new(4, 0), Direction::N, Color::White),
                 vec![]
             );
         }
@@ -455,7 +477,7 @@ mod board_tests {
         fn no_move_w() {
             let board = Board::new();
             assert_eq!(
-                board.check_direction(Position { x: 5, y: 1 }, Direction::W, Color::White),
+                board.check_direction(Position::new(5, 1), Direction::W, Color::White),
                 vec![]
             );
         }
@@ -464,8 +486,8 @@ mod board_tests {
         fn edge_board_e() {
             let board = Board::new();
             assert_eq!(
-                board.check_direction(Position { x: 6, y: 5 }, Direction::E, Color::White),
-                vec![Position { x: 7, y: 5 }]
+                board.check_direction(Position::new(6, 5), Direction::E, Color::White),
+                vec![Position::new(7, 5)]
             );
         }
 
@@ -473,7 +495,7 @@ mod board_tests {
         fn edge_board_s() {
             let board = Board::new();
             assert_eq!(
-                board.check_direction(Position { x: 3, y: 7 }, Direction::E, Color::White),
+                board.check_direction(Position::new(3, 7), Direction::E, Color::White),
                 vec![]
             );
         }
@@ -482,13 +504,13 @@ mod board_tests {
         fn take_piece_ne() {
             let board = Board::new();
             let mut result =
-                board.check_direction(Position { x: 2, y: 2 }, Direction::NE, Color::White);
+                board.check_direction(Position::new(2, 2), Direction::NE, Color::White);
             result.sort();
             let mut expected_result = vec![
-                Position { x: 3, y: 3 },
-                Position { x: 4, y: 4 },
-                Position { x: 5, y: 5 },
-                Position { x: 6, y: 6 },
+                Position::new(3, 3),
+                Position::new(4, 4),
+                Position::new(5, 5),
+                Position::new(6, 6),
             ];
             expected_result.sort();
             assert_eq!(result, expected_result);
@@ -498,9 +520,9 @@ mod board_tests {
         fn take_piece_sw() {
             let board = Board::new();
             let mut result =
-                board.check_direction(Position { x: 4, y: 3 }, Direction::SW, Color::Black);
+                board.check_direction(Position::new(4, 3), Direction::SW, Color::Black);
             result.sort();
-            let mut expected_result = vec![Position { x: 3, y: 2 }, Position { x: 2, y: 1 }];
+            let mut expected_result = vec![Position::new(3, 2), Position::new(2, 1)];
             expected_result.sort();
             assert_eq!(result, expected_result);
         }
