@@ -849,7 +849,13 @@ mod board_tests {
             let board = Board::new();
             let mut result = board.check_king(Position { x: 3, y: 5 }, Color::Black);
             result.sort();
-            let mut expected_result = vec![Position { x: 2, y: 5 }, Position { x: 2, y: 4 }, Position { x: 3, y: 4 }, Position { x: 4, y: 4 }, Position { x: 4, y: 5 }];
+            let mut expected_result = vec![
+                Position { x: 2, y: 5 },
+                Position { x: 2, y: 4 },
+                Position { x: 3, y: 4 },
+                Position { x: 4, y: 4 },
+                Position { x: 4, y: 5 },
+            ];
             expected_result.sort();
             assert_eq!(result, expected_result);
         }
