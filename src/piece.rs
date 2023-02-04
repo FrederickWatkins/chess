@@ -2,8 +2,8 @@ use std::fmt::Display;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum Color {
-    White,
-    Black,
+    White = 1,
+    Black = -1,
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]

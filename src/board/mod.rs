@@ -138,13 +138,19 @@ impl Board {
     }
 
     /// Moves piece from from_position to to_position, taking a piece at the destination if neccesary. Does not check if move is possible.
-    pub fn move_piece(&mut self, from_position: Position, to_position: Position) -> Result<(), PieceNotFound>{
+    pub fn move_piece(
+        &mut self,
+        from_position: Position,
+        to_position: Position,
+    ) -> Result<(), PieceNotFound> {
         info!("Moving piece from {from_position} to {to_position}");
         self[to_position] = None;
         let mut piece = if let Some(piece) = self[from_position] {
             piece
         } else {
-            return Err(PieceNotFound {position: from_position});
+            return Err(PieceNotFound {
+                position: from_position,
+            });
         };
         piece.moved = true;
         self[from_position] = Some(piece);
@@ -168,7 +174,7 @@ impl Board {
             return Err(PieceNotFound { position });
         };
         Ok(match piece.piece_type {
-            PieceType::Pawn => todo!(),
+            PieceType::Pawn => self.check_pawn(position, piece.color, piece.moved),
             PieceType::Knight => todo!(),
             PieceType::Bishop => self.check_directions(position, vec![NE, SE, SW, NW], piece.color),
             PieceType::Rook => self.check_directions(position, vec![N, E, S, W], piece.color),
@@ -234,19 +240,62 @@ impl Board {
         positions
     }
 
-    fn check_offset(
+    fn check_pawn(&self, position: Position, color: Color, moved: bool) -> Vec<Position> {
+        let mut positions = vec![];
+        if !moved {
+            if let Ok(position) = position
+                + (Offset {
+                    x: 0,
+                    y: 2 * color as i8,
+                })
+            {
+                if self.check_position(position, color, false, false) {
+                    positions.push(position);
+                };
+            };
+        };
+        if let Ok(position) = position
+            + (Offset {
+                x: 0,
+                y: color as i8,
+            })
+        {
+            if self.check_position(position, color, false, false) {
+                positions.push(position);
+            };
+        };
+        if let Ok(position) = position
+            + (Offset {
+                x: 1,
+                y: color as i8,
+            })
+        {
+            if self.check_position(position, color, true, true) {
+                positions.push(position);
+            };
+        };
+        if let Ok(position) = position
+            + (Offset {
+                x: -1,
+                y: color as i8,
+            })
+        {
+            if self.check_position(position, color, true, true) {
+                positions.push(position);
+            };
+        };
+
+        positions
+    }
+
+    fn check_position(
         &self,
-        mut position: Position,
+        position: Position,
         color: Color,
-        offset: Offset,
         can_take: bool,
         must_take: bool,
     ) -> bool {
-        debug!("Checking offset {offset} from {position}");
-        position = match position + offset {
-            Ok(position) => position,
-            Err(_) => return false,
-        };
+        debug!("Checking {position}");
         let piece = if let Some(piece) = self[position] {
             piece
         } else {
@@ -346,7 +395,9 @@ mod board_tests {
         #[test]
         fn move_queen() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 3, y: 0 }, Position { x: 5, y: 5 }).unwrap();
+            board
+                .move_piece(Position { x: 3, y: 0 }, Position { x: 5, y: 5 })
+                .unwrap();
             assert_eq!(board[Position { x: 3, y: 0 }], None);
             assert_eq!(
                 board[Position { x: 5, y: 5 }].unwrap(),
@@ -363,9 +414,29 @@ mod board_tests {
         use super::*;
 
         #[test]
+        fn pawn() {
+            let mut board = Board::new();
+            board
+                .move_piece(Position { x: 5, y: 6 }, Position { x: 5, y: 4 })
+                .unwrap();
+            board
+                .move_piece(Position { x: 4, y: 1 }, Position { x: 4, y: 3 })
+                .unwrap();
+            let mut result = board
+                .calculate_possible_moves(Position { x: 4, y: 3 })
+                .unwrap();
+            result.sort();
+            let mut expected_result = vec![Position { x: 5, y: 4 }, Position { x: 4, y: 4 }];
+            expected_result.sort();
+            assert_eq!(result, expected_result)
+        }
+
+        #[test]
         fn bishop() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 2, y: 7 }, Position { x: 4, y: 5 }).unwrap();
+            board
+                .move_piece(Position { x: 2, y: 7 }, Position { x: 4, y: 5 })
+                .unwrap();
             let mut result = board
                 .calculate_possible_moves(Position { x: 4, y: 5 })
                 .unwrap();
@@ -386,7 +457,9 @@ mod board_tests {
         #[test]
         fn rook() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 0, y: 0 }, Position { x: 3, y: 4 }).unwrap();
+            board
+                .move_piece(Position { x: 0, y: 0 }, Position { x: 3, y: 4 })
+                .unwrap();
             let mut result = board
                 .calculate_possible_moves(Position { x: 3, y: 4 })
                 .unwrap();
@@ -411,7 +484,9 @@ mod board_tests {
         #[test]
         fn queen() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 3, y: 7 }, Position { x: 1, y: 3 }).unwrap();
+            board
+                .move_piece(Position { x: 3, y: 7 }, Position { x: 1, y: 3 })
+                .unwrap();
             let mut result = board
                 .calculate_possible_moves(Position { x: 1, y: 3 })
                 .unwrap();
@@ -600,80 +675,61 @@ mod board_tests {
         }
     }
 
-    mod check_offset {
+    mod check_pawn {
         use super::*;
 
         #[test]
-        fn edge_board_n() {
+        fn first_move_white() {
             let board = Board::new();
-            assert_eq!(
-                board.check_offset(
-                    Position { x: 4, y: 6 },
-                    Color::Black,
-                    Offset { x: 0, y: 2 },
-                    true,
-                    false
-                ),
-                false
-            );
+            let mut result = board.check_pawn(Position { x: 3, y: 3 }, Color::White, false);
+            result.sort();
+            let mut expected_result = vec![Position { x: 3, y: 4 }, Position { x: 3, y: 5 }];
+            expected_result.sort();
+            assert_eq!(result, expected_result);
         }
 
         #[test]
-        fn edge_board_e() {
+        fn first_move_black() {
             let board = Board::new();
-            assert_eq!(
-                board.check_offset(
-                    Position { x: 1, y: 3 },
-                    Color::White,
-                    Offset { x: -2, y: 0 },
-                    true,
-                    false
-                ),
-                false
-            );
+            let mut result = board.check_pawn(Position { x: 6, y: 5 }, Color::Black, false);
+            result.sort();
+            let mut expected_result = vec![Position { x: 6, y: 4 }, Position { x: 6, y: 3 }];
+            expected_result.sort();
+            assert_eq!(result, expected_result);
         }
 
         #[test]
-        fn edge_board_s() {
+        fn take_two_white() {
             let board = Board::new();
-            assert_eq!(
-                board.check_offset(
-                    Position { x: 5, y: 0 },
-                    Color::Black,
-                    Offset { x: 0, y: -1 },
-                    true,
-                    false
-                ),
-                false
-            );
+            let mut result = board.check_pawn(Position { x: 6, y: 5 }, Color::White, true);
+            result.sort();
+            let mut expected_result = vec![Position { x: 5, y: 6 }, Position { x: 7, y: 6 }];
+            expected_result.sort();
+            assert_eq!(result, expected_result);
         }
 
         #[test]
-        fn edge_board_w() {
-            let board = Board::new();
-            assert_eq!(
-                board.check_offset(
-                    Position { x: 7, y: 4 },
-                    Color::White,
-                    Offset { x: 1, y: 0 },
-                    true,
-                    false
-                ),
-                false
-            );
+        fn take_one_black() {
+            let mut board = Board::new();
+            board
+                .move_piece(Position { x: 2, y: 1 }, Position { x: 2, y: 3 })
+                .unwrap();
+            let mut result = board.check_pawn(Position { x: 3, y: 4 }, Color::Black, true);
+            result.sort();
+            let mut expected_result = vec![Position { x: 2, y: 3 }, Position { x: 3, y: 3 }];
+            expected_result.sort();
+            assert_eq!(result, expected_result);
         }
+    }
+
+    mod check_position {
+        use super::*;
 
         #[test]
         fn must_take_empty() {
             let board = Board::new();
             assert_eq!(
-                board.check_offset(
-                    Position { x: 3, y: 1 },
-                    Color::White,
-                    Offset { x: 1, y: 2 },
-                    true,
-                    true
-                ),
+                board.check_position(Position { x: 4, y: 3 }, Color::White, true, true),
                 false
             )
         }
@@ -682,13 +738,7 @@ mod board_tests {
         fn must_take_enemy() {
             let board = Board::new();
             assert_eq!(
-                board.check_offset(
-                    Position { x: 0, y: 2 },
-                    Color::Black,
-                    Offset { x: 0, y: -1 },
-                    true,
-                    true
-                ),
+                board.check_position(Position { x: 0, y: 1 }, Color::Black, true, true),
                 true
             )
         }
@@ -697,13 +747,7 @@ mod board_tests {
         fn must_take_friendly() {
             let board = Board::new();
             assert_eq!(
-                board.check_offset(
-                    Position { x: 4, y: 2 },
-                    Color::White,
-                    Offset { x: 0, y: -1 },
-                    true,
-                    true
-                ),
+                board.check_position(Position { x: 4, y: 1 }, Color::White, true, true),
                 false
             )
         }
@@ -712,13 +756,7 @@ mod board_tests {
         fn cannot_take() {
             let board = Board::new();
             assert_eq!(
-                board.check_offset(
-                    Position { x: 6, y: 3 },
-                    Color::Black,
-                    Offset { x: 0, y: -2 },
-                    false,
-                    false
-                ),
+                board.check_position(Position { x: 6, y: 1 }, Color::Black, false, false),
                 false
             )
         }
