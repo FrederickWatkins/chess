@@ -219,8 +219,12 @@ impl Board {
             Direction::W => Offset { x: -1, y: 0 },
             Direction::NW => Offset { x: -1, y: 1 },
         };
-        while 0 < position.x && position.x < 7 && 0 < position.y && position.y < 7 {
-            position = (position + offset).unwrap();
+        loop {
+            position = if let Ok(position) = position + offset {
+                position
+            } else {
+                break;
+            };
             let piece = if let Some(piece) = self[position] {
                 piece
             } else {
@@ -642,8 +646,34 @@ mod board_tests {
         fn edge_board_s() {
             let board = Board::new();
             assert_eq!(
-                board.check_direction(Position { x: 3, y: 7 }, Direction::E, Color::White),
+                board.check_direction(Position { x: 3, y: 0 }, Direction::S, Color::White),
                 vec![]
+            );
+        }
+
+        #[test]
+        fn from_edge_e() {
+            let board = Board::new();
+            let mut result = board.check_direction(Position { x: 0, y: 2 }, Direction::E, Color::White);
+            result.sort();
+            let mut expected_result = vec![Position { x: 1, y: 2 }, Position { x: 2, y: 2 }, Position { x: 3, y: 2 }, Position { x: 4, y: 2 }, Position { x: 5, y: 2 }, Position { x: 6, y: 2 }, Position { x: 7, y: 2 }];
+            expected_result.sort();
+            assert_eq!(
+                result,
+                expected_result
+            );
+        }
+
+        #[test]
+        fn from_edge_w() {
+            let board = Board::new();
+            let mut result = board.check_direction(Position { x: 7, y: 4 }, Direction::W, Color::White);
+            result.sort();
+            let mut expected_result = vec![Position { x: 0, y: 4 }, Position { x: 1, y: 4 }, Position { x: 2, y: 4 }, Position { x: 3, y: 4 }, Position { x: 4, y: 4 }, Position { x: 5, y: 4 }, Position { x: 6, y: 4 }];
+            expected_result.sort();
+            assert_eq!(
+                result,
+                expected_result
             );
         }
 
