@@ -175,7 +175,7 @@ impl Board {
         };
         Ok(match piece.piece_type {
             PieceType::Pawn => self.check_pawn(position, piece.color, piece.moved),
-            PieceType::Knight => todo!(),
+            PieceType::Knight => self.check_knight(position, piece.color),
             PieceType::Bishop => self.check_directions(position, vec![NE, SE, SW, NW], piece.color),
             PieceType::Rook => self.check_directions(position, vec![N, E, S, W], piece.color),
             PieceType::Queen => {
@@ -289,6 +289,19 @@ impl Board {
             };
         };
 
+        positions
+    }
+
+    fn check_knight(&self, position: Position, color: Color) -> Vec<Position> {
+        let mut positions = vec![];
+        let offsets = [Offset { x: 2, y: 1}, Offset { x: -2, y: 1}, Offset { x: -2, y: -1}, Offset { x: 2, y: -1}, Offset { x: 1, y: 2 }, Offset { x: -1, y: 2 }, Offset { x: -1, y: -2 }, Offset { x: 1, y: -2 }];
+        for offset in offsets {
+            if let Ok(position) = position + offset {
+                if self.check_position(position, color, true, false) {
+                    positions.push(position)
+                }
+            }
+        };
         positions
     }
 
@@ -747,6 +760,30 @@ mod board_tests {
             let mut result = board.check_pawn(Position { x: 3, y: 4 }, Color::Black, true);
             result.sort();
             let mut expected_result = vec![Position { x: 2, y: 3 }, Position { x: 3, y: 3 }];
+            expected_result.sort();
+            assert_eq!(result, expected_result);
+        }
+    }
+
+    mod check_knight {
+        use super::*;
+
+        #[test]
+        fn no_edge() {
+            let board = Board::new();
+            let mut result = board.check_knight(Position { x: 3, y: 5 }, Color::White);
+            result.sort();
+            let mut expected_result = vec![Position { x: 2, y: 7 }, Position { x: 4, y: 7 }, Position { x: 1, y: 6}, Position { x: 5, y: 6}, Position {x: 5, y: 4}, Position {x: 1, y: 4}, Position {x: 2, y: 3}, Position {x: 4, y: 3}];
+            expected_result.sort();
+            assert_eq!(result, expected_result);
+        }
+
+        #[test]
+        fn near_edge() {
+            let board = Board::new();
+            let mut result = board.check_knight(Position { x: 0, y: 5 }, Color::Black);
+            result.sort();
+            let mut expected_result = vec![Position { x: 2, y: 4 }, Position { x: 1, y: 3 }];
             expected_result.sort();
             assert_eq!(result, expected_result);
         }
