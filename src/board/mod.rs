@@ -5,6 +5,7 @@ use std::{
     ops::{Add, AddAssign, Index, IndexMut},
 };
 use thiserror::Error;
+use log::{info, warn, debug, trace};
 
 mod board_layout;
 
@@ -99,6 +100,7 @@ impl Board {
 
     /// Moves piece from from_position to to_position, taking a piece at the destination if neccesary. Does not check if move is possible.
     pub fn move_piece(&mut self, from_position: Position, to_position: Position) {
+        info!("Moving piece from {from_position} to {to_position}");
         self[to_position] = None;
         let mut piece = self[from_position].unwrap();
         piece.moved = true;
@@ -113,9 +115,12 @@ impl Board {
         position: Position,
     ) -> Result<Vec<Position>, PieceNotFound> {
         use Direction::*;
+        info!("Calculating possible moves for piece at {position}");
         let piece = if let Some(piece) = self[position] {
+            debug!("Piece type is {:?}", piece.piece_type);
             piece
         } else {
+            warn!("No piece found at {position}");
             return Err(PieceNotFound { position });
         };
         Ok(match piece.piece_type {
@@ -137,6 +142,7 @@ impl Board {
         directions: Vec<Direction>,
         color: Color,
     ) -> Vec<Position> {
+        debug!("Checking directions {directions:?} for piece at {position} with color {color:?}");
         let mut out = vec![];
         for direction in directions {
             out.append(&mut self.check_direction(position, direction, color));
@@ -151,6 +157,7 @@ impl Board {
         direction: Direction,
         color: Color,
     ) -> Vec<Position> {
+        debug!("Checking direction {direction:?} for piece at {position} with color {color:?}");
         let mut positions: Vec<Position> = vec![];
         let offset = match direction {
             Direction::N => Offset::new(0, 1),
@@ -171,12 +178,15 @@ impl Board {
                 continue;
             };
             if piece.color == color {
+                trace!("Reached piece of own color at {position}");
                 return positions;
             } else {
+                trace!("Reached piece of opposite color at {position}");
                 positions.push(position);
                 return positions;
             }
         }
+        trace!("Reached edge of board at {position}");
         positions
     }
 }
