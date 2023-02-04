@@ -1,12 +1,18 @@
+use crate::piece::*;
+use array2d::Array2D;
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Index, IndexMut},
 };
-
-use crate::piece::*;
-use array2d::Array2D;
+use thiserror::Error;
 
 mod board_layout;
+
+#[derive(Error, Debug)]
+#[error("No piece found at {position}.")]
+pub struct PieceNotFound {
+    position: Position,
+}
 
 /// Position on chess board
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
@@ -19,10 +25,15 @@ impl Position {
     pub fn new(x: u8, y: u8) -> Self {
         if x < 8 && y < 8 {
             Self { x, y }
-        }
-        else {
+        } else {
             panic!("Position out of bounds.")
         }
+    }
+}
+
+impl Display for Position {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
     }
 }
 
@@ -37,8 +48,7 @@ impl Offset {
     pub fn new(x: i8, y: i8) -> Self {
         if -8 < x && x < 8 && -8 < y && y < 8 {
             Self { x, y }
-        }
-        else {
+        } else {
             panic!("Offset out of bounds.")
         }
     }
@@ -98,21 +108,21 @@ impl Board {
     }
 
     /// Takes in the position of a piece, returns all possible positions it could move to. Returns none if piece does not exist.
-    pub fn calculate_possible_moves(&self, position: Position) -> Option<Vec<Position>> {
+    pub fn calculate_possible_moves(
+        &self,
+        position: Position,
+    ) -> Result<Vec<Position>, PieceNotFound> {
         use Direction::*;
-        let piece = match self[position] {
-            Some(piece) => piece,
-            None => return None,
+        let piece = if let Some(piece) = self[position] {
+            piece
+        } else {
+            return Err(PieceNotFound { position });
         };
-        Some(match piece.piece_type {
+        Ok(match piece.piece_type {
             PieceType::Pawn => todo!(),
             PieceType::Knight => todo!(),
-            PieceType::Bishop => {
-                self.check_directions(position, vec![NE, SE, SW, NW], piece.color)
-            }
-            PieceType::Rook => {
-                self.check_directions(position, vec![N, E, S, W], piece.color)
-            }
+            PieceType::Bishop => self.check_directions(position, vec![NE, SE, SW, NW], piece.color),
+            PieceType::Rook => self.check_directions(position, vec![N, E, S, W], piece.color),
             PieceType::Queen => {
                 self.check_directions(position, vec![N, NE, E, SE, S, SW, W, NW], piece.color)
             }
@@ -190,12 +200,9 @@ impl IndexMut<Position> for Board {
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for (i, row) in self.pieces.rows_iter().enumerate() {
-            match write!(f, "{}  ", i + 1) {
-                Ok(_) => (),
-                Err(e) => return Err(e),
-            };
+            write!(f, "{}  ", i + 1)?;
             for piece in row {
-                match write!(
+                write!(
                     f,
                     "{}  ",
                     match piece {
@@ -204,19 +211,10 @@ impl Display for Board {
                         }
                         None => " ".to_string(),
                     }
-                ) {
-                    Ok(_) => (),
-                    Err(e) => return Err(e),
-                };
+                )?;
             }
-            match writeln!(f) {
-                Ok(_) => (),
-                Err(e) => return Err(e),
-            };
-            match writeln!(f) {
-                Ok(_) => (),
-                Err(e) => return Err(e),
-            };
+            writeln!(f)?;
+            writeln!(f)?;
         }
         write!(f, "   A  B  C  D  E  F  G  H")
     }
@@ -228,18 +226,12 @@ mod position_tests {
 
     #[test]
     fn test_offset_positive_n() {
-        assert_eq!(
-            Position::new(6, 6),
-            Position::new(6, 5) + Offset::new(0, 1)
-        );
+        assert_eq!(Position::new(6, 6), Position::new(6, 5) + Offset::new(0, 1));
     }
 
     #[test]
     fn test_offset_positive_ne() {
-        assert_eq!(
-            Position::new(6, 6),
-            Position::new(5, 5) + Offset::new(1, 1)
-        );
+        assert_eq!(Position::new(6, 6), Position::new(5, 5) + Offset::new(1, 1));
     }
 
     #[test]
@@ -289,9 +281,7 @@ mod board_tests {
         fn bishop() {
             let mut board = Board::new();
             board.move_piece(Position::new(2, 7), Position::new(4, 5));
-            let mut result = board
-                .calculate_possible_moves(Position::new(4, 5))
-                .unwrap();
+            let mut result = board.calculate_possible_moves(Position::new(4, 5)).unwrap();
             result.sort();
             let mut expected_result = vec![
                 Position::new(0, 1),
@@ -310,9 +300,7 @@ mod board_tests {
         fn rook() {
             let mut board = Board::new();
             board.move_piece(Position::new(0, 0), Position::new(3, 4));
-            let mut result = board
-                .calculate_possible_moves(Position::new(3, 4))
-                .unwrap();
+            let mut result = board.calculate_possible_moves(Position::new(3, 4)).unwrap();
             result.sort();
             let mut expected_result = vec![
                 Position::new(0, 4),
@@ -335,9 +323,7 @@ mod board_tests {
         fn queen() {
             let mut board = Board::new();
             board.move_piece(Position::new(3, 7), Position::new(1, 3));
-            let mut result = board
-                .calculate_possible_moves(Position::new(1, 3))
-                .unwrap();
+            let mut result = board.calculate_possible_moves(Position::new(1, 3)).unwrap();
             result.sort();
             let mut expected_result = vec![
                 Position::new(0, 3),
