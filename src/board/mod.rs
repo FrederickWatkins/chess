@@ -55,6 +55,12 @@ impl Offset {
     }
 }
 
+impl Display for Offset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
 impl Add<Offset> for Position {
     type Output = Self;
 
@@ -188,6 +194,23 @@ impl Board {
         }
         trace!("Reached edge of board at {position}");
         positions
+    }
+
+    fn check_offset(&self, mut position: Position, color: Color, offset: Offset, can_take: bool) -> bool {
+        debug!("Checking offset {offset} from {position}");
+        position += offset;
+        let piece = if let Some(piece) = self[position] {
+            piece
+        } else {
+            return true;
+        };
+        if piece.color == color {
+            false
+        } else if can_take == true {
+            true
+        } else {
+            false
+        }
     }
 }
 
