@@ -294,14 +294,23 @@ impl Board {
 
     fn check_knight(&self, position: Position, color: Color) -> Vec<Position> {
         let mut positions = vec![];
-        let offsets = [Offset { x: 2, y: 1}, Offset { x: -2, y: 1}, Offset { x: -2, y: -1}, Offset { x: 2, y: -1}, Offset { x: 1, y: 2 }, Offset { x: -1, y: 2 }, Offset { x: -1, y: -2 }, Offset { x: 1, y: -2 }];
+        let offsets = [
+            Offset { x: 2, y: 1 },
+            Offset { x: -2, y: 1 },
+            Offset { x: -2, y: -1 },
+            Offset { x: 2, y: -1 },
+            Offset { x: 1, y: 2 },
+            Offset { x: -1, y: 2 },
+            Offset { x: -1, y: -2 },
+            Offset { x: 1, y: -2 },
+        ];
         for offset in offsets {
             if let Ok(position) = position + offset {
                 if self.check_position(position, color, true, false) {
                     positions.push(position)
                 }
             }
-        };
+        }
         positions
     }
 
@@ -667,27 +676,39 @@ mod board_tests {
         #[test]
         fn from_edge_e() {
             let board = Board::new();
-            let mut result = board.check_direction(Position { x: 0, y: 2 }, Direction::E, Color::White);
+            let mut result =
+                board.check_direction(Position { x: 0, y: 2 }, Direction::E, Color::White);
             result.sort();
-            let mut expected_result = vec![Position { x: 1, y: 2 }, Position { x: 2, y: 2 }, Position { x: 3, y: 2 }, Position { x: 4, y: 2 }, Position { x: 5, y: 2 }, Position { x: 6, y: 2 }, Position { x: 7, y: 2 }];
+            let mut expected_result = vec![
+                Position { x: 1, y: 2 },
+                Position { x: 2, y: 2 },
+                Position { x: 3, y: 2 },
+                Position { x: 4, y: 2 },
+                Position { x: 5, y: 2 },
+                Position { x: 6, y: 2 },
+                Position { x: 7, y: 2 },
+            ];
             expected_result.sort();
-            assert_eq!(
-                result,
-                expected_result
-            );
+            assert_eq!(result, expected_result);
         }
 
         #[test]
         fn from_edge_w() {
             let board = Board::new();
-            let mut result = board.check_direction(Position { x: 7, y: 4 }, Direction::W, Color::White);
+            let mut result =
+                board.check_direction(Position { x: 7, y: 4 }, Direction::W, Color::White);
             result.sort();
-            let mut expected_result = vec![Position { x: 0, y: 4 }, Position { x: 1, y: 4 }, Position { x: 2, y: 4 }, Position { x: 3, y: 4 }, Position { x: 4, y: 4 }, Position { x: 5, y: 4 }, Position { x: 6, y: 4 }];
+            let mut expected_result = vec![
+                Position { x: 0, y: 4 },
+                Position { x: 1, y: 4 },
+                Position { x: 2, y: 4 },
+                Position { x: 3, y: 4 },
+                Position { x: 4, y: 4 },
+                Position { x: 5, y: 4 },
+                Position { x: 6, y: 4 },
+            ];
             expected_result.sort();
-            assert_eq!(
-                result,
-                expected_result
-            );
+            assert_eq!(result, expected_result);
         }
 
         #[test]
@@ -773,7 +794,16 @@ mod board_tests {
             let board = Board::new();
             let mut result = board.check_knight(Position { x: 3, y: 5 }, Color::White);
             result.sort();
-            let mut expected_result = vec![Position { x: 2, y: 7 }, Position { x: 4, y: 7 }, Position { x: 1, y: 6}, Position { x: 5, y: 6}, Position {x: 5, y: 4}, Position {x: 1, y: 4}, Position {x: 2, y: 3}, Position {x: 4, y: 3}];
+            let mut expected_result = vec![
+                Position { x: 2, y: 7 },
+                Position { x: 4, y: 7 },
+                Position { x: 1, y: 6 },
+                Position { x: 5, y: 6 },
+                Position { x: 5, y: 4 },
+                Position { x: 1, y: 4 },
+                Position { x: 2, y: 3 },
+                Position { x: 4, y: 3 },
+            ];
             expected_result.sort();
             assert_eq!(result, expected_result);
         }
