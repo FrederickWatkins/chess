@@ -235,13 +235,17 @@ impl Board {
         color: Color,
         offset: Offset,
         can_take: bool,
+        must_take: bool
     ) -> bool {
         debug!("Checking offset {offset} from {position}");
-        position = (position + offset).unwrap();
+        position = match position + offset {
+            Ok(position) => position,
+            Err(_) => {return false},
+        };
         let piece = if let Some(piece) = self[position] {
             piece
         } else {
-            return true;
+            return !must_take;  // Return true for empty square unless must take is true.
         };
         if piece.color == color {
             false
@@ -591,5 +595,9 @@ mod board_tests {
             expected_result.sort();
             assert_eq!(result, expected_result);
         }
+    }
+
+    mod check_offset {
+
     }
 }
