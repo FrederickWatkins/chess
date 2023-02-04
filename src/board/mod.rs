@@ -1,11 +1,11 @@
 use crate::piece::*;
 use array2d::Array2D;
+use log::{debug, info, trace, warn};
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Index, IndexMut},
 };
 use thiserror::Error;
-use log::{info, warn, debug, trace};
 
 mod board_layout;
 
@@ -13,6 +13,20 @@ mod board_layout;
 #[error("No piece found at {position}.")]
 pub struct PieceNotFound {
     position: Position,
+}
+
+#[derive(Error, Debug)]
+#[error("Attempted to create position at {x}, {y}. Position x and y must both be less than 8")]
+pub struct PositionOutOfBounds {
+    x: isize,
+    y: isize,
+}
+
+#[derive(Error, Debug)]
+#[error("Attempted to create offset of {x}, {y}. Position x and y must both be less than 8 and more than -8")]
+pub struct OffsetOutOfBounds {
+    x: i8,
+    y: i8,
 }
 
 /// Position on chess board
@@ -23,11 +37,11 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn new(x: u8, y: u8) -> Self {
+    pub fn new(x: u8, y: u8) -> Result<Self, PositionOutOfBounds> {
         if x < 8 && y < 8 {
-            Self { x, y }
+            Ok(Self { x, y })
         } else {
-            panic!("Position out of bounds.")
+            Err(PositionOutOfBounds {x: x.into(), y: y.into()})
         }
     }
 }
@@ -46,11 +60,11 @@ pub struct Offset {
 }
 
 impl Offset {
-    pub fn new(x: i8, y: i8) -> Self {
+    pub fn new(x: i8, y: i8) -> Result<Self, OffsetOutOfBounds> {
         if -8 < x && x < 8 && -8 < y && y < 8 {
-            Self { x, y }
+            Ok(Self { x, y })
         } else {
-            panic!("Offset out of bounds.")
+            Err(OffsetOutOfBounds { x, y })
         }
     }
 }
@@ -62,19 +76,20 @@ impl Display for Offset {
 }
 
 impl Add<Offset> for Position {
-    type Output = Self;
+    type Output = Result<Self, PositionOutOfBounds>;
 
     fn add(self, rhs: Offset) -> Self::Output {
-        Self {
-            x: (i8::try_from(self.x).unwrap() + rhs.x).try_into().unwrap(),
-            y: (i8::try_from(self.y).unwrap() + rhs.y).try_into().unwrap(),
-        }
-    }
-}
-
-impl AddAssign<Offset> for Position {
-    fn add_assign(&mut self, rhs: Offset) {
-        *self = *self + rhs;
+        let (new_x, new_y) = unsafe {(i8::try_from(self.x).unwrap_unchecked(), i8::try_from(self.y).unwrap_unchecked())};  // This is okay since x and y must always be less than 8
+        Self::new(
+            match new_x.try_into() {
+                Ok(x) => x,
+                Err(_) => {return Err(PositionOutOfBounds {x: new_x.into(), y: new_y.into()});} ,
+            },
+            match new_y.try_into() {
+                Ok(y) => y,
+                Err(_) => {return Err(PositionOutOfBounds {x: new_x.into(), y: new_y.into()});} ,
+            },
+        )
     }
 }
 
@@ -165,7 +180,7 @@ impl Board {
     ) -> Vec<Position> {
         debug!("Checking direction {direction:?} for piece at {position} with color {color:?}");
         let mut positions: Vec<Position> = vec![];
-        let offset = match direction {
+        let offset = unsafe {match direction {
             Direction::N => Offset::new(0, 1),
             Direction::NE => Offset::new(1, 1),
             Direction::E => Offset::new(1, 0),
@@ -174,9 +189,9 @@ impl Board {
             Direction::SW => Offset::new(-1, -1),
             Direction::W => Offset::new(-1, 0),
             Direction::NW => Offset::new(-1, 1),
-        };
+        }.unwrap_unchecked()}; // This is okay because all match arms create valid offsets
         while 0 < position.x && position.x < 7 && 0 < position.y && position.y < 7 {
-            position += offset;
+            position = (position + offset).unwrap();
             let piece = if let Some(piece) = self[position] {
                 piece
             } else {
@@ -196,9 +211,15 @@ impl Board {
         positions
     }
 
-    fn check_offset(&self, mut position: Position, color: Color, offset: Offset, can_take: bool) -> bool {
+    fn check_offset(
+        &self,
+        mut position: Position,
+        color: Color,
+        offset: Offset,
+        can_take: bool,
+    ) -> bool {
         debug!("Checking offset {offset} from {position}");
-        position += offset;
+        position = (position + offset).unwrap();
         let piece = if let Some(piece) = self[position] {
             piece
         } else {
