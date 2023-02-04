@@ -138,14 +138,19 @@ impl Board {
     }
 
     /// Moves piece from from_position to to_position, taking a piece at the destination if neccesary. Does not check if move is possible.
-    pub fn move_piece(&mut self, from_position: Position, to_position: Position) {
+    pub fn move_piece(&mut self, from_position: Position, to_position: Position) -> Result<(), PieceNotFound>{
         info!("Moving piece from {from_position} to {to_position}");
         self[to_position] = None;
-        let mut piece = self[from_position].unwrap();
+        let mut piece = if let Some(piece) = self[from_position] {
+            piece
+        } else {
+            return Err(PieceNotFound {position: from_position});
+        };
         piece.moved = true;
         self[from_position] = Some(piece);
         self[to_position] = self[from_position];
         self[from_position] = None;
+        Ok(())
     }
 
     /// Takes in the position of a piece, returns all possible positions it could move to. Returns none if piece does not exist.
@@ -260,14 +265,14 @@ impl Index<Position> for Board {
 
     #[inline(always)]
     fn index(&self, index: Position) -> &Self::Output {
-        &self.pieces[(index.y.try_into().unwrap(), index.x.try_into().unwrap())]
+        &self.pieces[(index.y.into(), index.x.into())]
     }
 }
 
 impl IndexMut<Position> for Board {
     #[inline(always)]
     fn index_mut(&mut self, index: Position) -> &mut Self::Output {
-        &mut self.pieces[(index.y.try_into().unwrap(), index.x.try_into().unwrap())]
+        &mut self.pieces[(index.y.into(), index.x.into())]
     }
 }
 
@@ -341,7 +346,7 @@ mod board_tests {
         #[test]
         fn move_queen() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 3, y: 0 }, Position { x: 5, y: 5 });
+            board.move_piece(Position { x: 3, y: 0 }, Position { x: 5, y: 5 }).unwrap();
             assert_eq!(board[Position { x: 3, y: 0 }], None);
             assert_eq!(
                 board[Position { x: 5, y: 5 }].unwrap(),
@@ -360,7 +365,7 @@ mod board_tests {
         #[test]
         fn bishop() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 2, y: 7 }, Position { x: 4, y: 5 });
+            board.move_piece(Position { x: 2, y: 7 }, Position { x: 4, y: 5 }).unwrap();
             let mut result = board
                 .calculate_possible_moves(Position { x: 4, y: 5 })
                 .unwrap();
@@ -381,7 +386,7 @@ mod board_tests {
         #[test]
         fn rook() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 0, y: 0 }, Position { x: 3, y: 4 });
+            board.move_piece(Position { x: 0, y: 0 }, Position { x: 3, y: 4 }).unwrap();
             let mut result = board
                 .calculate_possible_moves(Position { x: 3, y: 4 })
                 .unwrap();
@@ -406,7 +411,7 @@ mod board_tests {
         #[test]
         fn queen() {
             let mut board = Board::new();
-            board.move_piece(Position { x: 3, y: 7 }, Position { x: 1, y: 3 });
+            board.move_piece(Position { x: 3, y: 7 }, Position { x: 1, y: 3 }).unwrap();
             let mut result = board
                 .calculate_possible_moves(Position { x: 1, y: 3 })
                 .unwrap();
