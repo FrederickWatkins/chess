@@ -235,24 +235,22 @@ impl Board {
         color: Color,
         offset: Offset,
         can_take: bool,
-        must_take: bool
+        must_take: bool,
     ) -> bool {
         debug!("Checking offset {offset} from {position}");
         position = match position + offset {
             Ok(position) => position,
-            Err(_) => {return false},
+            Err(_) => return false,
         };
         let piece = if let Some(piece) = self[position] {
             piece
         } else {
-            return !must_take;  // Return true for empty square unless must take is true.
+            return !must_take; // Return true for empty square unless must take is true.
         };
         if piece.color == color {
             false
-        } else if can_take == true {
-            true
         } else {
-            false
+            can_take // Return true if piece can take
         }
     }
 }
@@ -598,6 +596,126 @@ mod board_tests {
     }
 
     mod check_offset {
+        use super::*;
 
+        #[test]
+        fn edge_board_n() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 4, y: 6 },
+                    Color::Black,
+                    Offset { x: 0, y: 2 },
+                    true,
+                    false
+                ),
+                false
+            );
+        }
+
+        #[test]
+        fn edge_board_e() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 1, y: 3 },
+                    Color::White,
+                    Offset { x: -2, y: 0 },
+                    true,
+                    false
+                ),
+                false
+            );
+        }
+
+        #[test]
+        fn edge_board_s() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 5, y: 0 },
+                    Color::Black,
+                    Offset { x: 0, y: -1 },
+                    true,
+                    false
+                ),
+                false
+            );
+        }
+
+        #[test]
+        fn edge_board_w() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 7, y: 4 },
+                    Color::White,
+                    Offset { x: 1, y: 0 },
+                    true,
+                    false
+                ),
+                false
+            );
+        }
+
+        #[test]
+        fn must_take_empty() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 3, y: 1 },
+                    Color::White,
+                    Offset { x: 1, y: 2 },
+                    true,
+                    true
+                ),
+                false
+            )
+        }
+
+        #[test]
+        fn must_take_enemy() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 0, y: 2 },
+                    Color::Black,
+                    Offset { x: 0, y: -1 },
+                    true,
+                    true
+                ),
+                true
+            )
+        }
+
+        #[test]
+        fn must_take_friendly() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 4, y: 2 },
+                    Color::White,
+                    Offset { x: 0, y: -1 },
+                    true,
+                    true
+                ),
+                false
+            )
+        }
+
+        #[test]
+        fn cannot_take() {
+            let board = Board::new();
+            assert_eq!(
+                board.check_offset(
+                    Position { x: 6, y: 3 },
+                    Color::Black,
+                    Offset { x: 0, y: -2 },
+                    false,
+                    false
+                ),
+                false
+            )
+        }
     }
 }
