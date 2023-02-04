@@ -181,7 +181,7 @@ impl Board {
             PieceType::Queen => {
                 self.check_directions(position, vec![N, NE, E, SE, S, SW, W, NW], piece.color)
             }
-            PieceType::King => todo!(),
+            PieceType::King => self.check_king(position, piece.color),
         })
     }
 
@@ -303,6 +303,28 @@ impl Board {
             Offset { x: -1, y: 2 },
             Offset { x: -1, y: -2 },
             Offset { x: 1, y: -2 },
+        ];
+        for offset in offsets {
+            if let Ok(position) = position + offset {
+                if self.check_position(position, color, true, false) {
+                    positions.push(position)
+                }
+            }
+        }
+        positions
+    }
+
+    fn check_king(&self, position: Position, color: Color) -> Vec<Position> {
+        let mut positions = vec![];
+        let offsets = [
+            Offset { x: 1, y: 1 },
+            Offset { x: -1, y: 1 },
+            Offset { x: -1, y: -1 },
+            Offset { x: 1, y: -1 },
+            Offset { x: 1, y: 0 },
+            Offset { x: -1, y: 0 },
+            Offset { x: 0, y: -1 },
+            Offset { x: 0, y: 1 },
         ];
         for offset in offsets {
             if let Ok(position) = position + offset {
@@ -814,6 +836,20 @@ mod board_tests {
             let mut result = board.check_knight(Position { x: 0, y: 5 }, Color::Black);
             result.sort();
             let mut expected_result = vec![Position { x: 2, y: 4 }, Position { x: 1, y: 3 }];
+            expected_result.sort();
+            assert_eq!(result, expected_result);
+        }
+    }
+
+    mod check_king {
+        use super::*;
+
+        #[test]
+        fn near_friendlies() {
+            let board = Board::new();
+            let mut result = board.check_king(Position { x: 3, y: 5 }, Color::Black);
+            result.sort();
+            let mut expected_result = vec![Position { x: 2, y: 5 }, Position { x: 2, y: 4 }, Position { x: 3, y: 4 }, Position { x: 4, y: 4 }, Position { x: 4, y: 5 }];
             expected_result.sort();
             assert_eq!(result, expected_result);
         }
