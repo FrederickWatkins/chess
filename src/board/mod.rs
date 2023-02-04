@@ -3,7 +3,7 @@ use array2d::Array2D;
 use log::{debug, info, trace, warn};
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Index, IndexMut},
+    ops::{Add, Index, IndexMut},
 };
 use thiserror::Error;
 
@@ -41,7 +41,10 @@ impl Position {
         if x < 8 && y < 8 {
             Ok(Self { x, y })
         } else {
-            Err(PositionOutOfBounds {x: x.into(), y: y.into()})
+            Err(PositionOutOfBounds {
+                x: x.into(),
+                y: y.into(),
+            })
         }
     }
 }
@@ -79,15 +82,30 @@ impl Add<Offset> for Position {
     type Output = Result<Self, PositionOutOfBounds>;
 
     fn add(self, rhs: Offset) -> Self::Output {
-        let (new_x, new_y) = unsafe {(i8::try_from(self.x).unwrap_unchecked(), i8::try_from(self.y).unwrap_unchecked())};  // This is okay since x and y must always be less than 8
+        let (new_x, new_y) = unsafe {
+            (
+                i8::try_from(self.x).unwrap_unchecked() + rhs.x,
+                i8::try_from(self.y).unwrap_unchecked() + rhs.y,
+            )
+        }; // This is okay since x and y must always be less than 8
         Self::new(
             match new_x.try_into() {
                 Ok(x) => x,
-                Err(_) => {return Err(PositionOutOfBounds {x: new_x.into(), y: new_y.into()});} ,
+                Err(_) => {
+                    return Err(PositionOutOfBounds {
+                        x: new_x.into(),
+                        y: new_y.into(),
+                    });
+                }
             },
             match new_y.try_into() {
                 Ok(y) => y,
-                Err(_) => {return Err(PositionOutOfBounds {x: new_x.into(), y: new_y.into()});} ,
+                Err(_) => {
+                    return Err(PositionOutOfBounds {
+                        x: new_x.into(),
+                        y: new_y.into(),
+                    });
+                }
             },
         )
     }
@@ -282,7 +300,7 @@ mod position_tests {
     fn test_offset_positive_n() {
         assert_eq!(
             Position { x: 6, y: 6 },
-            Position { x: 6, y: 5 } + Offset { x: 0, y: 1 }
+            (Position { x: 6, y: 5 } + Offset { x: 0, y: 1 }).unwrap()
         );
     }
 
@@ -290,7 +308,7 @@ mod position_tests {
     fn test_offset_positive_ne() {
         assert_eq!(
             Position { x: 6, y: 6 },
-            Position { x: 5, y: 5 } + Offset { x: 1, y: 1 }
+            (Position { x: 5, y: 5 } + Offset { x: 1, y: 1 }).unwrap()
         );
     }
 
@@ -298,7 +316,7 @@ mod position_tests {
     fn test_offset_negative_s() {
         assert_eq!(
             Position { x: 6, y: 5 },
-            Position { x: 6, y: 6 } + Offset { x: 0, y: -1 }
+            (Position { x: 6, y: 6 } + Offset { x: 0, y: -1 }).unwrap()
         );
     }
 
@@ -306,7 +324,7 @@ mod position_tests {
     fn test_offset_negative_sw() {
         assert_eq!(
             Position { x: 5, y: 5 },
-            Position { x: 6, y: 6 } + Offset { x: -1, y: -1 }
+            (Position { x: 6, y: 6 } + Offset { x: -1, y: -1 }).unwrap()
         );
     }
 }
