@@ -1,6 +1,6 @@
 [workspace]
 
-members = ["chess-lib", "chess-cli"]
+members = ["chess_lib", "chess_cli"]
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
