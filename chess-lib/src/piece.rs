@@ -1,11 +1,13 @@
 use std::fmt::Display;
 
+/// Chess piece colors.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum Color {
     White = 1,
     Black = -1,
 }
 
+/// Piece types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PieceType {
     Pawn,
@@ -15,6 +17,8 @@ pub enum PieceType {
     Queen,
     King,
 }
+
+/// Chess piece.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Piece {
     pub color: Color,
@@ -39,6 +43,9 @@ impl Display for Piece {
     }
 }
 
+/// Creates new chess piece.
+/// 
+/// Chess piece is initialized with moved = false.
 impl Piece {
     pub fn new(color: Color, piece_type: PieceType) -> Self {
         Self {
