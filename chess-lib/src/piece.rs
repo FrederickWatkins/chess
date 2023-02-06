@@ -44,7 +44,7 @@ impl Display for Piece {
 }
 
 /// Creates new chess piece.
-/// 
+///
 /// Chess piece is initialized with moved = false.
 impl Piece {
     pub fn new(color: Color, piece_type: PieceType) -> Self {
