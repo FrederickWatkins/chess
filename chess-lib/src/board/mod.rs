@@ -9,19 +9,22 @@ use thiserror::Error;
 
 mod board_layout;
 
+/// Error if a position where no piece is present is passed into a function that requires it.
 #[derive(Error, Debug)]
 #[error("No piece found at {position}.")]
 pub struct PieceNotFound {
     position: Position,
 }
 
-#[derive(Error, Debug)]
+/// Error if a position is outside of a chess board.
+#[derive(Error, Debug, PartialEq)]
 #[error("Attempted to create position at {x}, {y}. Position x and y must both be less than 8")]
 pub struct PositionOutOfBounds {
     x: isize,
     y: isize,
 }
 
+/// Error if an offset is larger than possible for a chess board.
 #[derive(Error, Debug)]
 #[error("Attempted to create offset of {x}, {y}. Position x and y must both be less than 8 and more than -8")]
 pub struct OffsetOutOfBounds {
@@ -29,7 +32,9 @@ pub struct OffsetOutOfBounds {
     y: i8,
 }
 
-/// Position on chess board
+/// Position on chess board.
+/// 
+/// (0, 0) is A1, (7, 7) is H8 etc.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Position {
     x: u8,
@@ -37,6 +42,16 @@ pub struct Position {
 }
 
 impl Position {
+    /// Creates a new position (x, y).
+    /// 
+    /// Will return PositionOutOfBounds error if x and y are not both less than 8.
+    /// ```
+    /// use chess_lib::board::Position;
+    /// 
+    /// assert!(Position::new(3, 4).is_ok());
+    /// assert!(Position::new(8, 2).is_err());
+    /// assert!(Position::new(4, 8).is_err());
+    /// ```
     pub fn new(x: u8, y: u8) -> Result<Self, PositionOutOfBounds> {
         if x < 8 && y < 8 {
             Ok(Self { x, y })
@@ -55,7 +70,7 @@ impl Display for Position {
     }
 }
 
-/// Offset to position
+/// Offset to a position on a chess board. Can be added to position.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Offset {
     x: i8,
@@ -63,6 +78,16 @@ pub struct Offset {
 }
 
 impl Offset {
+    /// Creates a new offset (x, y).
+    ///
+    /// Will return OffsetOutOfBounds error if x and y are not both between -8 and 8.
+    /// ```
+    /// use chess_lib::board::Offset;
+    /// 
+    /// assert!(Offset::new(-2, 4).is_ok());
+    /// assert!(Offset::new(8, -2).is_err());
+    /// assert!(Offset::new(4, -8).is_err());
+    /// ```
     pub fn new(x: i8, y: i8) -> Result<Self, OffsetOutOfBounds> {
         if -8 < x && x < 8 && -8 < y && y < 8 {
             Ok(Self { x, y })
@@ -111,7 +136,7 @@ impl Add<Offset> for Position {
     }
 }
 
-/// Directions a piece can move
+/// Directions a piece can move. Cardinal and ordinal directions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 enum Direction {
     N,
@@ -124,20 +149,42 @@ enum Direction {
     NW,
 }
 
-/// Chess board. It is the responsibility of the caller to ensure moves on the board are possible.
+/// Standard 8x8 chess board. Keeps track of positions of pieces.
+/// 
+/// Has the capability to check the possible positions a piece could move to. It does not keep track of any game state, and therefore will not account for checks, pins or blocks.
+/// Can be indexed with a position, which will return either the piece at that position or None if no piece is present.
+/// ```
+/// use chess_lib::{board::*, piece::*};
+/// 
+/// let b = Board::new();
+/// assert_eq!(b[Position::new(0, 0).unwrap()], Some(Piece::new(Color::White, PieceType::Rook)));
+/// assert_eq!(b[Position::new(0, 2).unwrap()], None);
+/// ```
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Board {
     pieces: Array2D<Option<Piece>>,
 }
 
 impl Board {
+    /// Creates a chess board with a standard layout.
+    /// 
+    /// ```
+    /// use chess_lib::{board::*, piece::*};
+    /// 
+    /// let b = Board::new();
+    /// assert_eq!(b[Position::new(2, 0).unwrap()], Some(Piece::new(Color::White, PieceType::Bishop)));
+    /// assert_eq!(b[Position::new(3, 6).unwrap()], Some(Piece::new(Color::Black, PieceType::Pawn)));
+    /// assert_eq!(b[Position::new(0, 2).unwrap()], None);
+    /// ```
     pub fn new() -> Self {
         Self {
             pieces: board_layout::DEFAULT_BOARD.clone(),
         }
     }
 
-    /// Moves piece from from_position to to_position, taking a piece at the destination if neccesary. Does not check if move is possible.
+    /// Moves piece from from_position to to_position, taking a piece at the destination if neccesary.
+    /// 
+    /// Does not check if move is possible. Returns PieceNotFound error if piece does not exist.
     pub fn move_piece(
         &mut self,
         from_position: Position,
@@ -159,7 +206,30 @@ impl Board {
         Ok(())
     }
 
-    /// Takes in the position of a piece, returns all possible positions it could move to. Returns none if piece does not exist.
+    /// Takes in the position of a piece, returns all possible positions it could move to.
+    /// 
+    /// Order of returned vector is arbitrary, and should not be relied on (if checking against another vector for equality, should be sorted).
+    /// ```
+    /// use chess_lib::board::*;
+    /// 
+    /// let b = Board::new();
+    /// let mut queen_positions = b.check_positions(Position::new(3, 0).unwrap()).unwrap();
+    /// queen_positions.sort();
+    /// assert_eq!(queen_positions, vec![]);
+    /// 
+    /// let mut pawn_positions = b.check_positions(Position::new(2, 1).unwrap()).unwrap();
+    /// pawn_positions.sort();
+    /// let mut expected_pawn_positions = vec![Position::new(2, 2).unwrap(), Position::new(2, 3).unwrap()];
+    /// expected_pawn_positions.sort();
+    /// assert_eq!(pawn_positions, expected_pawn_positions);
+    /// ```
+    /// 
+    /// Returns PieceNotFound error if piece does not exist.
+    /// ```
+    /// use chess_lib::board::*;
+    /// 
+    /// let b = Board::new();
+    /// assert!(b.check_positions(Position::new(3, 2).unwrap()).is_err())
     pub fn check_positions(&self, position: Position) -> Result<Vec<Position>, PieceNotFound> {
         use Direction::*;
         info!("Calculating possible moves for piece at {position}");
@@ -241,6 +311,7 @@ impl Board {
         positions
     }
 
+    /// Returns vector of possible positions pawn could move to.
     fn check_pawn(&self, position: Position, color: Color, moved: bool) -> Vec<Position> {
         let mut positions = vec![];
         if !moved {
@@ -289,6 +360,7 @@ impl Board {
         positions
     }
 
+    /// Returns vector of possible positions knight could move to.
     fn check_knight(&self, position: Position, color: Color) -> Vec<Position> {
         let mut positions = vec![];
         let offsets = [
@@ -311,6 +383,7 @@ impl Board {
         positions
     }
 
+    /// Returns vector of possible positions knight could move to.
     fn check_king(&self, position: Position, color: Color) -> Vec<Position> {
         let mut positions = vec![];
         let offsets = [
@@ -333,6 +406,7 @@ impl Board {
         positions
     }
 
+    /// Checks whether a position can be moved to.
     fn check_position(
         &self,
         position: Position,
