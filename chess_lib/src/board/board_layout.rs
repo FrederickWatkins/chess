@@ -1,4 +1,8 @@
-use crate::piece::{Color::*, Piece, PieceType::*};
+use crate::piece::{
+    Color::{Black, White},
+    Piece,
+    PieceType::{Bishop, King, Knight, Pawn, Queen, Rook},
+};
 use array2d::Array2D;
 use lazy_static::lazy_static;
 

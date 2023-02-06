@@ -1,4 +1,4 @@
-use crate::piece::*;
+use crate::piece::{Color, Piece, PieceType};
 use array2d::Array2D;
 use log::{debug, info, trace, warn};
 use std::{
@@ -44,7 +44,13 @@ pub struct Position {
 impl Position {
     /// Creates a new position (x, y).
     ///
-    /// Will return PositionOutOfBounds error if x and y are not both less than 8.
+    /// # Parameters
+    /// * `x`: The horizontal coordinate
+    /// * `y`: The vertical coordinate
+    ///
+    /// # Errors
+    /// * Will return [`PositionOutOfBounds`] error if x and y are not both less than 8.
+    ///
     /// ```
     /// use chess_lib::board::Position;
     ///
@@ -80,7 +86,12 @@ pub struct Offset {
 impl Offset {
     /// Creates a new offset (x, y).
     ///
-    /// Will return OffsetOutOfBounds error if x and y are not both between -8 and 8.
+    /// # Parameters
+    /// * `x`: The horizontal component
+    /// * `y`: The vertical component
+    /// # Errors
+    /// * Will return [`OffsetOutOfBounds`] error if x and y are not both between -8 and 8.
+    ///
     /// ```
     /// use chess_lib::board::Offset;
     ///
@@ -153,6 +164,7 @@ enum Direction {
 ///
 /// Has the capability to check the possible positions a piece could move to. It does not keep track of any game state, and therefore will not account for checks, pins or blocks.
 /// Can be indexed with a position, which will return either the piece at that position or None if no piece is present.
+///
 /// ```
 /// use chess_lib::{board::*, piece::*};
 ///
@@ -176,15 +188,23 @@ impl Board {
     /// assert_eq!(b[Position::new(3, 6).unwrap()], Some(Piece::new(Color::Black, PieceType::Pawn)));
     /// assert_eq!(b[Position::new(0, 2).unwrap()], None);
     /// ```
+    #[must_use]
     pub fn new() -> Self {
         Self {
             pieces: board_layout::DEFAULT_BOARD.clone(),
         }
     }
 
-    /// Moves piece from from_position to to_position, taking a piece at the destination if neccesary.
+    /// Moves piece from `from_position` to `to_position`, taking a piece at the destination if neccesary.
     ///
-    /// Does not check if move is possible. Returns PieceNotFound error if piece does not exist.
+    /// Does not check if move is possible.
+    ///
+    /// # Parameters
+    /// * `from_position`: The position the piece is currently at.
+    /// * `to_position`: The position to move the piece to.
+    ///
+    /// # Errors
+    /// * Returns [`PieceNotFound`] error if piece does not exist.
     pub fn move_piece(
         &mut self,
         from_position: Position,
@@ -192,9 +212,7 @@ impl Board {
     ) -> Result<(), PieceNotFound> {
         info!("Moving piece from {from_position} to {to_position}");
         self[to_position] = None;
-        let mut piece = if let Some(piece) = self[from_position] {
-            piece
-        } else {
+        let Some(mut piece) = self[from_position] else {
             return Err(PieceNotFound {
                 position: from_position,
             });
@@ -209,6 +227,12 @@ impl Board {
     /// Takes in the position of a piece, returns all possible positions it could move to.
     ///
     /// Order of returned vector is arbitrary, and should not be relied on (if checking against another vector for equality, should be sorted).
+    ///
+    /// # Parameters
+    /// * `position`: The position of the piece to check
+    /// # Errors
+    /// * Returns [`PieceNotFound`] error if piece does not exist.
+    ///
     /// ```
     /// use chess_lib::board::*;
     ///
@@ -224,14 +248,14 @@ impl Board {
     /// assert_eq!(pawn_positions, expected_pawn_positions);
     /// ```
     ///
-    /// Returns PieceNotFound error if piece does not exist.
     /// ```
     /// use chess_lib::board::*;
     ///
     /// let b = Board::new();
     /// assert!(b.check_positions(Position::new(3, 2).unwrap()).is_err())
+    /// ```
     pub fn check_positions(&self, position: Position) -> Result<Vec<Position>, PieceNotFound> {
-        use Direction::*;
+        use Direction::{E, N, NE, NW, S, SE, SW, W};
         info!("Calculating possible moves for piece at {position}");
         let piece = if let Some(piece) = self[position] {
             debug!("Piece type is {:?}", piece.piece_type);
@@ -253,6 +277,11 @@ impl Board {
     }
 
     /// Checks directions and returns vector of possible positions.
+    ///
+    /// # Parameters
+    /// * `position`: The position to check directions from.
+    /// * `directions`: Which directions to check. Order does not matter.
+    /// * `color`: Which color the piece being checked is (to determine which pieces can be taken).
     fn check_directions(
         &self,
         position: Position,
@@ -268,6 +297,11 @@ impl Board {
     }
 
     /// Checks direction and returns vector of possible positions.
+    ///
+    /// # Parameters
+    /// * `position`: The position to check the direction from.
+    /// * `direction`: Which direction to check. Order does not matter.
+    /// * `color`: Which color the piece being checked is (to determine which pieces can be taken).
     fn check_direction(
         &self,
         mut position: Position,
@@ -292,26 +326,28 @@ impl Board {
             } else {
                 break;
             };
-            let piece = if let Some(piece) = self[position] {
-                piece
-            } else {
+            let Some(piece) = self[position] else {
                 positions.push(position);
                 continue;
             };
             if piece.color == color {
                 trace!("Reached piece of own color at {position}");
                 return positions;
-            } else {
-                trace!("Reached piece of opposite color at {position}");
-                positions.push(position);
-                return positions;
             }
+            trace!("Reached piece of opposite color at {position}");
+            positions.push(position);
+            return positions;
         }
         trace!("Reached edge of board at {position}");
         positions
     }
 
     /// Returns vector of possible positions pawn could move to.
+    ///
+    /// # Parameters
+    /// * `position`: The postition to check movement from.
+    /// * `color`: The color that the pawn is (to determine which pieces can be taken).
+    /// * `moved`: Whether the pawn has been moved.
     fn check_pawn(&self, position: Position, color: Color, moved: bool) -> Vec<Position> {
         let mut positions = vec![];
         if !moved {
@@ -361,6 +397,10 @@ impl Board {
     }
 
     /// Returns vector of possible positions knight could move to.
+    ///
+    /// # Parameters
+    /// * `position`: The position to check movement from.
+    /// * `color`: The color that the pawn is (to determine which pieces can be taken).
     fn check_knight(&self, position: Position, color: Color) -> Vec<Position> {
         let mut positions = vec![];
         let offsets = [
@@ -376,14 +416,19 @@ impl Board {
         for offset in offsets {
             if let Ok(position) = position + offset {
                 if self.check_position(position, color, true, false) {
-                    positions.push(position)
+                    positions.push(position);
                 }
             }
         }
         positions
     }
 
-    /// Returns vector of possible positions knight could move to.
+    /// Returns vector of possible positions king could move to.
+    ///
+    /// Does NOT check for checks.
+    /// # Parameters
+    /// * `position`: The position to check movement from.
+    /// * `color`: The color that the pawn is (to determine which pieces can be taken).
     fn check_king(&self, position: Position, color: Color) -> Vec<Position> {
         let mut positions = vec![];
         let offsets = [
@@ -399,7 +444,7 @@ impl Board {
         for offset in offsets {
             if let Ok(position) = position + offset {
                 if self.check_position(position, color, true, false) {
-                    positions.push(position)
+                    positions.push(position);
                 }
             }
         }
@@ -407,6 +452,12 @@ impl Board {
     }
 
     /// Checks whether a position can be moved to.
+    ///
+    /// # Parameters
+    /// * `position`: The position to check movement from.
+    /// * `color`: The color that the pawn is (to determine which pieces can be taken).
+    /// * `can_take`: Whether other pieces can be taken.
+    /// * `must_take`: Whether other pieces must be taken.
     fn check_position(
         &self,
         position: Position,
@@ -415,9 +466,7 @@ impl Board {
         must_take: bool,
     ) -> bool {
         debug!("Checking {position}");
-        let piece = if let Some(piece) = self[position] {
-            piece
-        } else {
+        let  Some(piece) = self[position] else {
             return !must_take; // Return true for empty square unless must take is true.
         };
         if piece.color == color {
@@ -428,17 +477,23 @@ impl Board {
     }
 }
 
+impl Default for Board {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Index<Position> for Board {
     type Output = Option<Piece>;
 
-    #[inline(always)]
+    #[inline]
     fn index(&self, index: Position) -> &Self::Output {
         &self.pieces[(index.y.into(), index.x.into())]
     }
 }
 
 impl IndexMut<Position> for Board {
-    #[inline(always)]
+    #[inline]
     fn index_mut(&mut self, index: Position) -> &mut Self::Output {
         &mut self.pieces[(index.y.into(), index.x.into())]
     }

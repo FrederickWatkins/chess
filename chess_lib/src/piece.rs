@@ -9,6 +9,7 @@ pub enum Color {
 
 /// Piece types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
+#[allow(clippy::module_name_repetitions)]
 pub enum PieceType {
     Pawn,
     Knight,
@@ -47,6 +48,7 @@ impl Display for Piece {
 ///
 /// Chess piece is initialized with moved = false.
 impl Piece {
+    #[must_use]
     pub fn new(color: Color, piece_type: PieceType) -> Self {
         Self {
             color,
