@@ -373,29 +373,6 @@ impl IndexMut<Position> for Board {
     }
 }
 
-impl Display for Board {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for (i, row) in self.pieces.rows_iter().enumerate() {
-            write!(f, "{}  ", i + 1)?;
-            for piece in row {
-                write!(
-                    f,
-                    "{}  ",
-                    match piece {
-                        Some(piece) => {
-                            format!("{piece}")
-                        }
-                        None => " ".to_string(),
-                    }
-                )?;
-            }
-            writeln!(f)?;
-            writeln!(f)?;
-        }
-        write!(f, "   A  B  C  D  E  F  G  H")
-    }
-}
-
 #[cfg(test)]
 mod position_tests {
     use super::*;
