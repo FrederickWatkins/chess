@@ -11,9 +11,12 @@ mod board_layout;
 
 /// Error if a position where no piece is present is passed into a function that requires it.
 #[derive(Error, Debug)]
-#[error("No piece found at {position}.")]
-pub struct PieceNotFound {
-    position: Position,
+
+pub enum PieceError {
+    #[error("No piece found at {0}.")]
+    NotFound(Position),
+    #[error("{1:?} already present at {0}")]
+    Occupied(Position, PieceType),
 }
 
 /// Error if a position is outside of a chess board.
@@ -195,7 +198,7 @@ impl Board {
         }
     }
 
-    /// Moves piece from `from_position` to `to_position`, taking a piece at the destination if neccesary.
+    /// Moves piece from `from_position` to `to_position`.
     ///
     /// Does not check if move is possible.
     ///
@@ -204,18 +207,22 @@ impl Board {
     /// * `to_position`: The position to move the piece to.
     ///
     /// # Errors
-    /// * Returns [`PieceNotFound`] error if piece does not exist.
+    /// * Returns [`PieceError::NotFound`] error if piece does not exist.
+    /// * Returns [`PieceError::Occupied`] error if destination is already occupied.
     pub fn move_piece(
         &mut self,
         from_position: Position,
         to_position: Position,
-    ) -> Result<(), PieceNotFound> {
+    ) -> Result<(), PieceError> {
         info!("Moving piece from {from_position} to {to_position}");
-        self[to_position] = None;
+        if let Some(piece) = self[to_position] {
+            return Err(PieceError::Occupied(to_position, piece.piece_type));
+        }
+
         let Some(mut piece) = self[from_position] else {
-            return Err(PieceNotFound {
-                position: from_position,
-            });
+            return Err(PieceError::NotFound(
+                from_position,
+            ));
         };
         piece.moved = true;
         self[from_position] = Some(piece);
@@ -254,7 +261,7 @@ impl Board {
     /// let b = Board::new();
     /// assert!(b.check_positions(Position::new(3, 2).unwrap()).is_err())
     /// ```
-    pub fn check_positions(&self, position: Position) -> Result<Vec<Position>, PieceNotFound> {
+    pub fn check_positions(&self, position: Position) -> Result<Vec<Position>, PieceError> {
         use Direction::{E, N, NE, NW, S, SE, SW, W};
         info!("Calculating possible moves for piece at {position}");
         let piece = if let Some(piece) = self[position] {
@@ -262,7 +269,7 @@ impl Board {
             piece
         } else {
             warn!("No piece found at {position}");
-            return Err(PieceNotFound { position });
+            return Err(PieceError::NotFound(position));
         };
         Ok(match piece.piece_type {
             PieceType::Pawn => self.check_pawn(position, piece.color, piece.moved),
