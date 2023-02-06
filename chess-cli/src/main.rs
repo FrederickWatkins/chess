@@ -1,5 +1,4 @@
-mod board;
-mod piece;
+use chess_lib::board;
 
 fn main() {
     let b = board::Board::new();
