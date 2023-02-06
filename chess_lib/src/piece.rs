@@ -7,6 +7,19 @@ pub enum Color {
     Black = -1,
 }
 
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Color::White => "W",
+                Color::Black => "B",
+            }
+        )
+    }
+}
+
 /// Piece types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 #[allow(clippy::module_name_repetitions)]
@@ -19,20 +32,12 @@ pub enum PieceType {
     King,
 }
 
-/// Chess piece.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-pub struct Piece {
-    pub color: Color,
-    pub piece_type: PieceType,
-    pub moved: bool,
-}
-
-impl Display for Piece {
+impl Display for PieceType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
-            match self.piece_type {
+            match self {
                 PieceType::Pawn => "P",
                 PieceType::Knight => "N",
                 PieceType::Bishop => "B",
@@ -42,6 +47,14 @@ impl Display for Piece {
             }
         )
     }
+}
+
+/// Chess piece.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
+pub struct Piece {
+    pub color: Color,
+    pub piece_type: PieceType,
+    pub moved: bool,
 }
 
 /// Creates new chess piece.
@@ -55,5 +68,11 @@ impl Piece {
             piece_type,
             moved: false,
         }
+    }
+}
+
+impl Display for Piece {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}", self.color, self.piece_type)
     }
 }
