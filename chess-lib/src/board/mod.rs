@@ -160,10 +160,7 @@ impl Board {
     }
 
     /// Takes in the position of a piece, returns all possible positions it could move to. Returns none if piece does not exist.
-    pub fn calculate_possible_moves(
-        &self,
-        position: Position,
-    ) -> Result<Vec<Position>, PieceNotFound> {
+    pub fn check_positions(&self, position: Position) -> Result<Vec<Position>, PieceNotFound> {
         use Direction::*;
         info!("Calculating possible moves for piece at {position}");
         let piece = if let Some(piece) = self[position] {
@@ -435,7 +432,7 @@ mod board_tests {
         }
     }
 
-    mod calculate_possible_moves {
+    mod check_positions {
         use super::*;
 
         #[test]
@@ -447,9 +444,7 @@ mod board_tests {
             board
                 .move_piece(Position { x: 4, y: 1 }, Position { x: 4, y: 3 })
                 .unwrap();
-            let mut result = board
-                .calculate_possible_moves(Position { x: 4, y: 3 })
-                .unwrap();
+            let mut result = board.check_positions(Position { x: 4, y: 3 }).unwrap();
             result.sort();
             let mut expected_result = vec![Position { x: 5, y: 4 }, Position { x: 4, y: 4 }];
             expected_result.sort();
@@ -462,9 +457,7 @@ mod board_tests {
             board
                 .move_piece(Position { x: 2, y: 7 }, Position { x: 4, y: 5 })
                 .unwrap();
-            let mut result = board
-                .calculate_possible_moves(Position { x: 4, y: 5 })
-                .unwrap();
+            let mut result = board.check_positions(Position { x: 4, y: 5 }).unwrap();
             result.sort();
             let mut expected_result = vec![
                 Position { x: 0, y: 1 },
@@ -485,9 +478,7 @@ mod board_tests {
             board
                 .move_piece(Position { x: 0, y: 0 }, Position { x: 3, y: 4 })
                 .unwrap();
-            let mut result = board
-                .calculate_possible_moves(Position { x: 3, y: 4 })
-                .unwrap();
+            let mut result = board.check_positions(Position { x: 3, y: 4 }).unwrap();
             result.sort();
             let mut expected_result = vec![
                 Position { x: 0, y: 4 },
@@ -512,9 +503,7 @@ mod board_tests {
             board
                 .move_piece(Position { x: 3, y: 7 }, Position { x: 1, y: 3 })
                 .unwrap();
-            let mut result = board
-                .calculate_possible_moves(Position { x: 1, y: 3 })
-                .unwrap();
+            let mut result = board.check_positions(Position { x: 1, y: 3 }).unwrap();
             result.sort();
             let mut expected_result = vec![
                 Position { x: 0, y: 3 },
