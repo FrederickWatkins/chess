@@ -231,12 +231,33 @@ impl Board {
         Ok(())
     }
 
+    /// Removes piece.
+    /// 
+    /// # Parameters
+    /// * `position`: The position of the piece to remove.
+    /// # Errors
+    /// * Returns [`PieceError::NotFound`] if piece does not exist.
+    /// 
+    /// ```
+    /// use chess_lib::{board::*, piece::*};
+    ///
+    /// let mut b = Board::new();
+    /// assert_eq!(b[Position::new(3, 0).unwrap()], Some(Piece::new(Color::White, PieceType::Queen)));
+    /// b.take_piece(Position::new(3, 0).unwrap());
+    /// assert_eq!(b[Position::new(3, 0).unwrap()], None);
+    pub fn take_piece(&mut self, position: Position) -> Result<(), PieceError> {
+        match self[position] {
+            Some(_) => {self[position] = None; Ok(())},
+            None => {Err(PieceError::NotFound(position))},
+        }
+    }
+
     /// Takes in the position of a piece, returns all possible positions it could move to.
     ///
     /// Order of returned vector is arbitrary, and should not be relied on (if checking against another vector for equality, should be sorted).
     ///
     /// # Parameters
-    /// * `position`: The position of the piece to check
+    /// * `position`: The position of the piece to check.
     /// # Errors
     /// * Returns [`PieceNotFound`] error if piece does not exist.
     ///
