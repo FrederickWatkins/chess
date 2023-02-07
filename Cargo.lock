@@ -32,6 +32,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "chess_derives"
+version = "0.1.0"
+dependencies = [
+ "chess-lib",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

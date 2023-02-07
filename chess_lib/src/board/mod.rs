@@ -1,8 +1,9 @@
 pub mod layout;
 pub mod mailbox;
 
-use crate::error::{OffsetOutOfBounds, PositionOutOfBounds};
-use std::{fmt::Display, ops::Add};
+
+use crate::{error::{OffsetOutOfBounds, PieceError, PositionOutOfBounds}, piece::{PieceType}};
+use std::{collections::HashSet, fmt::Display, ops::Add};
 /// Position on chess board.
 ///
 /// (0, 0) is A1, (7, 7) is H8 etc.
@@ -111,7 +112,7 @@ impl Add<Offset> for Position {
 
 /// Directions a piece can move. Cardinal and ordinal directions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-enum Direction {
+pub enum Direction {
     N,
     NE,
     E,
@@ -120,4 +121,87 @@ enum Direction {
     SW,
     W,
     NW,
+}
+
+pub mod action {
+    use super::Position;
+    use crate::piece::PieceType;
+    pub struct Move {pub from_position: Position, pub to_position: Position}
+    pub struct Take {pub position: Position}
+    pub struct Promote {pub position: Position, pub piece_type: PieceType}
+}
+
+pub enum ChessMove {
+    Move(action::Move),
+    MoveWithTake(action::Move, action::Take),
+    Castle(action::Move, action::Move),
+    Promote(action::Move, action::Promote)
+}
+
+pub trait ExecuteMove: MovePiece + TakePiece + PromotePiece {
+    /// Execute a chess move on the board.
+    /// 
+    /// Will not check that the move is legal.
+    /// # Parameters
+    /// * `chess_move`: The move to execute.
+    /// # Errors
+    /// * Returns [`PieceError::NotFound`] if move attempts to move, take or promote a piece that does not exist.
+    /// * Returns [`PieceError::Occupied`] if move attempts to move piece to a square that is already occupied.
+    fn execute_move(&self, chess_move: ChessMove) -> Result<(), PieceError>;
+}
+
+
+
+pub trait MovePiece {
+    /// Move a piece on the board.
+    /// 
+    /// Will not check that move is legal.
+    /// # Parameters
+    /// * `from_position`: The position the piece is currently at.
+    /// * `to_position`: The position to move the piece to.
+    /// # Errors
+    /// * Returns [`PieceError::NotFound`] if there is no piece at `from_position`.
+    /// * Returns [`PieceError::Occupied`] if there is already a piece at `to_position`.
+    fn move_piece(&self, from_position: Position, to_position: Position) -> Result<(), PieceError>;
+}
+
+pub trait TakePiece {
+    /// Take a piece on the board.
+    /// 
+    /// # Parameters
+    /// * `position`: The position of the piece.
+    /// # Errors
+    /// * Returns [`PieceError::NotFound`] if there is no piece at `position`.
+    fn take_piece(&self, position: Position) -> Result<(), PieceError>;
+}
+
+pub trait PromotePiece {
+    /// Promote a piece on the board.
+    /// 
+    /// Does not check that promotion is legal.
+    /// # Parameters
+    /// * `position`: The position of the piece.
+    /// # Errors
+    /// * Returns [`PieceError::NotFound`] if there is no piece at `position`.
+    fn promote_piece(&self, position: Position, piece_type: PieceType) -> Result<(), PieceError>;
+}
+
+pub trait PseudoLegalMoves {
+    /// Generate pseudo legal moves for piece at `position`.
+    /// 
+    /// # Parameters
+    /// * `position`: The position of the piece.
+    /// # Errors
+    /// * Returns [`PieceError::NotFound`] if there is no piece at `position`.
+    fn pseudo_legal_moves(&self, position: Position) -> Result<HashSet<ChessMove>, PieceError>;
+}
+
+pub trait LegalMoves {
+    /// Generate legal moves for piece at `position`.
+    /// 
+    /// # Parameters
+    /// * `position`: The position of the piece.
+    /// # Errors
+    /// * Returns [`PieceError::NotFound`] if there is no piece at `position`.
+    fn legal_moves(&self, position: Position) -> Result<HashSet<ChessMove>, PieceError>;
 }
