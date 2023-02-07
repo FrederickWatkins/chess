@@ -259,7 +259,7 @@ impl Board {
     /// # Parameters
     /// * `position`: The position of the piece to check.
     /// # Errors
-    /// * Returns [`PieceNotFound`] error if piece does not exist.
+    /// * Returns [`PieceError::NotFound`] error if piece does not exist.
     ///
     /// ```
     /// use chess_lib::board::*;
