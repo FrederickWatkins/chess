@@ -1,5 +1,6 @@
 use crate::piece::{Color, Piece, PieceType};
-use crate::board::{Position, Offset, PieceError, Direction};
+use crate::board::{Position, Offset, Direction};
+use crate::error::PieceError;
 use array2d::Array2D;
 use log::{debug, info, trace, warn};
 use std::{

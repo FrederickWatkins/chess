@@ -2,36 +2,7 @@ pub mod mailbox;
 pub mod layout;
 
 use std::{fmt::Display, ops::Add};
-
-use thiserror::Error;
-use crate::piece::{PieceType};
-
-/// Error if a position where no piece is present is passed into a function that requires it.
-#[derive(Error, Debug)]
-
-pub enum PieceError {
-    #[error("No piece found at {0}.")]
-    NotFound(Position),
-    #[error("{1:?} already present at {0}")]
-    Occupied(Position, PieceType),
-}
-
-/// Error if a position is outside of a chess board.
-#[derive(Error, Debug, PartialEq)]
-#[error("Attempted to create position at {x}, {y}. Position x and y must both be less than 8")]
-pub struct PositionOutOfBounds {
-    x: isize,
-    y: isize,
-}
-
-/// Error if an offset is larger than possible for a chess board.
-#[derive(Error, Debug)]
-#[error("Attempted to create offset of {x}, {y}. Position x and y must both be less than 8 and more than -8")]
-pub struct OffsetOutOfBounds {
-    x: i8,
-    y: i8,
-}
-
+use crate::error::{PositionOutOfBounds, OffsetOutOfBounds};
 /// Position on chess board.
 ///
 /// (0, 0) is A1, (7, 7) is H8 etc.
@@ -62,10 +33,9 @@ impl Position {
         if x < 8 && y < 8 {
             Ok(Self { x, y })
         } else {
-            Err(PositionOutOfBounds {
-                x: x.into(),
-                y: y.into(),
-            })
+            Err(PositionOutOfBounds (x.into(),
+                y.into(),
+            ))
         }
     }
 }
@@ -103,7 +73,7 @@ impl Offset {
         if -8 < x && x < 8 && -8 < y && y < 8 {
             Ok(Self { x, y })
         } else {
-            Err(OffsetOutOfBounds { x, y })
+            Err(OffsetOutOfBounds ( x, y ))
         }
     }
 }
@@ -128,19 +98,19 @@ impl Add<Offset> for Position {
             match new_x.try_into() {
                 Ok(x) => x,
                 Err(_) => {
-                    return Err(PositionOutOfBounds {
-                        x: new_x.into(),
-                        y: new_y.into(),
-                    });
+                    return Err(PositionOutOfBounds (
+                        new_x.into(),
+                        new_y.into(),
+                    ));
                 }
             },
             match new_y.try_into() {
                 Ok(y) => y,
                 Err(_) => {
-                    return Err(PositionOutOfBounds {
-                        x: new_x.into(),
-                        y: new_y.into(),
-                    });
+                    return Err(PositionOutOfBounds (
+                        new_x.into(),
+                        new_y.into(),
+                    ));
                 }
             },
         )
