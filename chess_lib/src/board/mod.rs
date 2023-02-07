@@ -1,8 +1,8 @@
-pub mod mailbox;
 pub mod layout;
+pub mod mailbox;
 
+use crate::error::{OffsetOutOfBounds, PositionOutOfBounds};
 use std::{fmt::Display, ops::Add};
-use crate::error::{PositionOutOfBounds, OffsetOutOfBounds};
 /// Position on chess board.
 ///
 /// (0, 0) is A1, (7, 7) is H8 etc.
@@ -33,9 +33,7 @@ impl Position {
         if x < 8 && y < 8 {
             Ok(Self { x, y })
         } else {
-            Err(PositionOutOfBounds (x.into(),
-                y.into(),
-            ))
+            Err(PositionOutOfBounds(x.into(), y.into()))
         }
     }
 }
@@ -73,7 +71,7 @@ impl Offset {
         if -8 < x && x < 8 && -8 < y && y < 8 {
             Ok(Self { x, y })
         } else {
-            Err(OffsetOutOfBounds ( x, y ))
+            Err(OffsetOutOfBounds(x, y))
         }
     }
 }
@@ -98,19 +96,13 @@ impl Add<Offset> for Position {
             match new_x.try_into() {
                 Ok(x) => x,
                 Err(_) => {
-                    return Err(PositionOutOfBounds (
-                        new_x.into(),
-                        new_y.into(),
-                    ));
+                    return Err(PositionOutOfBounds(new_x.into(), new_y.into()));
                 }
             },
             match new_y.try_into() {
                 Ok(y) => y,
                 Err(_) => {
-                    return Err(PositionOutOfBounds (
-                        new_x.into(),
-                        new_y.into(),
-                    ));
+                    return Err(PositionOutOfBounds(new_x.into(), new_y.into()));
                 }
             },
         )

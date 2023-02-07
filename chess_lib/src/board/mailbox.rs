@@ -1,15 +1,11 @@
-use crate::piece::{Color, Piece, PieceType};
-use crate::board::{Position, Offset, Direction};
+use crate::board::{Direction, Offset, Position};
 use crate::error::PieceError;
+use crate::piece::{Color, Piece, PieceType};
 use array2d::Array2D;
 use log::{debug, info, trace, warn};
-use std::{
-    ops::{Index, IndexMut},
-};
+use std::ops::{Index, IndexMut};
 
 use crate::board::layout::DEFAULT_BOARD;
-
-
 
 /// Standard 8x8 chess board. Keeps track of positions of pieces.
 ///
@@ -80,12 +76,12 @@ impl Board {
     }
 
     /// Removes piece.
-    /// 
+    ///
     /// # Parameters
     /// * `position`: The position of the piece to remove.
     /// # Errors
     /// * Returns [`PieceError::NotFound`] if piece does not exist.
-    /// 
+    ///
     /// ```
     /// use chess_lib::{board::{*, mailbox::*}, piece::*};
     ///
@@ -95,8 +91,11 @@ impl Board {
     /// assert_eq!(b[Position::new(3, 0).unwrap()], None);
     pub fn take_piece(&mut self, position: Position) -> Result<(), PieceError> {
         match self[position] {
-            Some(_) => {self[position] = None; Ok(())},
-            None => {Err(PieceError::NotFound(position))},
+            Some(_) => {
+                self[position] = None;
+                Ok(())
+            }
+            None => Err(PieceError::NotFound(position)),
         }
     }
 
